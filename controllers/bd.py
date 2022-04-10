@@ -1,7 +1,7 @@
 import pyodbc
-import configparser
+from configparser import SafeConfigParser
 
-filename = "./options.cfg"
+filename = "options.cfg"
 parser = SafeConfigParser()
 parser.read(filename)
         
