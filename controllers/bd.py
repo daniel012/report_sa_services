@@ -1,20 +1,15 @@
 import pyodbc
-from flask import Flask, jsonify
+from configparser import SafeConfigParser
 
-app = Flask(__name__)
-
-conn = pyodbc.connect(r'Driver={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=C:\Users\uemar\OneDrive\Escritorio\SA_N1\bd1.mdb;')
+filename = "options.cfg"
+parser = SafeConfigParser()
+parser.read(filename)
+        
+conn = pyodbc.connect(r'Driver={Microsoft Access Driver (*.mdb, *.accdb)};DBQ='+parser['DB']['address'])
 cursor = conn.cursor()
 
-@app.route('/consulta')
-def consulta():
-    cursor.execute('select * from Usuarios')
+def executeQuery(query):
+    cursor.execute(query)
     rows = cursor.fetchall()
-    data = []
-    for row in rows:
-        data.append([x for x in row])
-    return jsonify(data)
+    return rows
 
-@app.route('/')
-def index():
-    return '<h1>Hola!<h1>'

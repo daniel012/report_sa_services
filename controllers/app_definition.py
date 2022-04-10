@@ -1,7 +1,9 @@
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS, cross_origin
 import os
-from .load_info import load_information 
+from .db import executeQuery 
+from configparser import SafeConfigParser
+
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
@@ -23,14 +25,17 @@ def create_app(test_config=None):
     @app.route('/', methods= ['GET'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def get_data():
-        key = request.args.get('key')
-        data = load_information(key)
+        rows = executeQuery('Select * from Usuarios')
+        data =[]
+        for row in rows:
+            data.append([x for x in row])
         return jsonify(data)
 
-    @app.route('/repair', methods= ['POST'])
+
+    @app.route('/checking', methods= ['GET'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
-    def post_request():
-        return 'ok'
+    def checking():
+        return  'hola'
 
     return app
 
