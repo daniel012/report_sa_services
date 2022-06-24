@@ -1,8 +1,9 @@
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS, cross_origin
 import os
-from .bd import executeQuery 
+from .db import executeQuery 
 from configparser import SafeConfigParser
+from openpyxl import Workbook
 
 
 def create_app(test_config=None):
@@ -22,10 +23,11 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    @app.route('/', methods= ['GET'])
+    @app.route('/iagent', methods= ['GET'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def get_data():
-        rows = executeQuery('Select * from Usuarios')
+        #rows = executeQuery("PRAGMA database_list;")
+        rows = executeQuery("SELECT * FROM agente")
         data =[]
         for row in rows:
             data.append([x for x in row])
