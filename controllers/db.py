@@ -95,10 +95,12 @@ def tablaCliente(sql, idagente, nombre, rfc, telefono, correo):
         instruction = f"INSERT INTO cliente (idagente, nombre, rfc, telefono, correo) VALUES ({idagente}, '{nombre}', '{rfc}', '{telefono}', '{correo}' )" 
 
     cur.execute(instruction)
+    id = cur.lastrowid
     # Save (commit) the changes
     con.commit()
     # We can also close the connection if we are done with it.
     con.close()
+    return id
 
 def tablaCompras(sql, idproducto, empresa, cantidad, costo):
     # Stabilished a connection
