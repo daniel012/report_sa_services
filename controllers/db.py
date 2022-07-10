@@ -13,7 +13,8 @@ def createDB():
         nom_corto TEXT,
         descripcion TEXT,
         existencia INT,
-        existencia_real INT)''')
+        existencia_real INT,
+        precio_sugerido REAL)''')
 
     cur.execute('''CREATE TABLE compras (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -133,20 +134,21 @@ def tablaCompras(sql, idproducto, empresa, cantidad, costo):
     # We can also close the connection if we are done with it.
     con.close()
 
-def tablaProducto(sql, nombre, descripcion, existencia, existencia_real, code, fecha, id=None, isIngreso= None, difference=None):
+def tablaProducto(sql, nombre, descripcion, existencia, existencia_real, code, fecha, precio_sugerido, id=None, isIngreso= None, difference=None):
     # Stabilished a connection
     con = sqlite3.connect('msa.db')
     # Create a cursor objet
     cur = con.cursor()
 
     if sql == "INSERTAR":
-        instruction = f"INSERT INTO producto (nombre, descripcion, existencia, existencia_real, nom_corto) VALUES ('{nombre}', '{descripcion}', '{existencia}', '{existencia_real}', '{code}')" 
+
+        instruction = f"INSERT INTO producto (nombre, descripcion, existencia, existencia_real, nom_corto, precio_sugerido) VALUES ('{nombre}', '{descripcion}', '{existencia}', '{existencia_real}', '{code}', '{precio_sugerido}')" 
         cur.execute(instruction)
         id = cur.lastrowid
         instruction = f"INSERT INTO producto_bitacora (idproducto, fecha, cantidad, ingreso) VALUES ('{id}', '{fecha}', '{existencia}', '{1}')" 
         cur.execute(instruction)
     elif sql == "ACTUALIZAR":
-        instruction = f"UPDATE producto SET nombre = '{nombre}' , descripcion = '{descripcion}' , existencia = '{existencia}', existencia_real = '{existencia_real}', nom_corto = '{code}' WHERE id = '{id}' " 
+        instruction = f"UPDATE producto SET nombre = '{nombre}' , descripcion = '{descripcion}' , existencia = '{existencia}', existencia_real = '{existencia_real}', nom_corto = '{code}' , precio_sugerido = '{precio_sugerido}' WHERE id = '{id}' " 
         cur.execute(instruction)
         print(isIngreso)
         if id is not None and isIngreso is not None and difference is not None and fecha is not None:

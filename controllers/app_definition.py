@@ -91,24 +91,25 @@ def create_app(test_config=None):
     @app.route('/product/<code>', methods= ['GET'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def get_data_product(code):
-        rows = executeQuery("SELECT id, nombre, descripcion, existencia, existencia_real, nom_corto FROM producto where nom_corto == \""+code+"\"")
+        rows = executeQuery("SELECT id, nombre, descripcion, existencia, existencia_real, nom_corto, precio_sugerido FROM producto where nom_corto == \""+code+"\"")
         data =[]
         for row in rows:
-            data.append({'id':row[0],'name':row[1],'description':row[2],'amount':row[3],'real_amount':row[4],'code': row[5]})
+            data.append({'id':row[0],'name':row[1],'description':row[2],'amount':row[3],'real_amount':row[4],'code': row[5], 'productPrice':row[6] })
         return jsonify(data), 200 if len(data) else 204
 
     @app.route('/product', methods= ['POST'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def insert_product():
         jsonValue = request.get_json()
-        idProduct = tablaProducto('INSERTAR',jsonValue.get('name'),jsonValue.get('description'),jsonValue.get('amount'),jsonValue.get('real_amount'),jsonValue.get('code'),jsonValue.get('fecha'))
+        print(jsonValue.get('productPrice'));
+        idProduct = tablaProducto('INSERTAR',jsonValue.get('name'),jsonValue.get('description'),jsonValue.get('amount'),jsonValue.get('real_amount'),jsonValue.get('code'),jsonValue.get('fecha'), jsonValue.get('productPrice'))
         return str(idProduct), 201
 
     @app.route('/product/<id>', methods= ['PUT'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def update_product(id):
         jsonValue = request.get_json()
-        idProduct = tablaProducto('ACTUALIZAR',jsonValue.get('name'),jsonValue.get('description'),jsonValue.get('amount'),jsonValue.get('real_amount'),jsonValue.get('code'),jsonValue.get('fecha'),id,jsonValue.get('isIngreso'),jsonValue.get('difference'))
+        idProduct = tablaProducto('ACTUALIZAR',jsonValue.get('name'),jsonValue.get('description'),jsonValue.get('amount'),jsonValue.get('real_amount'),jsonValue.get('code'),jsonValue.get('fecha'), jsonValue.get('productPrice'),id,jsonValue.get('isIngreso'),jsonValue.get('difference'))
         return str(idProduct), 200
 
     return app
