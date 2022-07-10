@@ -1,4 +1,3 @@
-from asyncio.windows_events import NULL
 import sqlite3
 
 def createDB():
@@ -63,6 +62,14 @@ def createDB():
         entregado INT,
         precio REAL)''')
 
+    cur.execute('''CREATE TABLE producto_bitacora (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        idproducto INT,
+        fecha TEXT,
+        cantidad INT,
+        ingreso INT,
+        idventa INT)''')
+
     # Insert a row of data
     #cur.execute("INSERT INTO stocks VALUES ('2006-01-05','BUY','RHAT',100,35.14)")
 
@@ -71,7 +78,7 @@ def createDB():
     # We can also close the connection if we are done with it.
     con.close()
 
-def tablaAgente(sql, nombre, direccion, telefono, correo, id=NULL):
+def tablaAgente(sql, nombre, direccion, telefono, correo, id=None):
     # Stabilished a connection
     con = sqlite3.connect('msa.db')
     # Create a cursor objet
@@ -91,7 +98,7 @@ def tablaAgente(sql, nombre, direccion, telefono, correo, id=NULL):
     return id
 
 
-def tablaCliente(sql, idagente, nombre, rfc, telefono, correo, id=NULL):
+def tablaCliente(sql, idagente, nombre, rfc, telefono, correo, id=None):
     # Stabilished a connection
     con = sqlite3.connect('msa.db')
     # Create a cursor objet
@@ -126,7 +133,7 @@ def tablaCompras(sql, idproducto, empresa, cantidad, costo):
     # We can also close the connection if we are done with it.
     con.close()
 
-def tablaProducto(sql, nombre, descripcion, existencia, existencia_real, code, id=NULL):
+def tablaProducto(sql, nombre, descripcion, existencia, existencia_real, code, fecha, id=None, isIngreso= None, difference=None):
     # Stabilished a connection
     con = sqlite3.connect('msa.db')
     # Create a cursor objet
@@ -134,11 +141,17 @@ def tablaProducto(sql, nombre, descripcion, existencia, existencia_real, code, i
 
     if sql == "INSERTAR":
         instruction = f"INSERT INTO producto (nombre, descripcion, existencia, existencia_real, nom_corto) VALUES ('{nombre}', '{descripcion}', '{existencia}', '{existencia_real}', '{code}')" 
+        cur.execute(instruction)
         id = cur.lastrowid
+        instruction = f"INSERT INTO producto_bitacora (idproducto, fecha, cantidad, ingreso) VALUES ('{id}', '{fecha}', '{existencia}', '{1}')" 
+        cur.execute(instruction)
     elif sql == "ACTUALIZAR":
         instruction = f"UPDATE producto SET nombre = '{nombre}' , descripcion = '{descripcion}' , existencia = '{existencia}', existencia_real = '{existencia_real}', nom_corto = '{code}' WHERE id = '{id}' " 
-
-    cur.execute(instruction)
+        cur.execute(instruction)
+        print(isIngreso)
+        if id is not None and isIngreso is not None and difference is not None and fecha is not None:
+            instruction = f"INSERT INTO producto_bitacora (idproducto, fecha, cantidad, ingreso) VALUES ('{id}', '{fecha}', '{difference}', '{isIngreso}')"
+            cur.execute(instruction)
     # Save (commit) the changes
     con.commit()
     # We can also close the connection if we are done with it.
@@ -182,3 +195,5 @@ def executeQuery(query):
     rows = cursor.fetchall()
     con.close()
     return rows
+
+#createDB()

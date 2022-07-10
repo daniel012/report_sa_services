@@ -7,6 +7,7 @@ import os
 from .db import executeQuery, tablaAgente, tablaCliente, tablaProducto
 from configparser import SafeConfigParser
 from openpyxl import Workbook
+from datetime import date
 
 
 def create_app(test_config=None):
@@ -100,17 +101,15 @@ def create_app(test_config=None):
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def insert_product():
         jsonValue = request.get_json()
-        idProduct = tablaProducto('INSERTAR',jsonValue.get('name'),jsonValue.get('description'),jsonValue.get('amount'),jsonValue.get('real_amount'),jsonValue.get('code'))
+        idProduct = tablaProducto('INSERTAR',jsonValue.get('name'),jsonValue.get('description'),jsonValue.get('amount'),jsonValue.get('real_amount'),jsonValue.get('code'),jsonValue.get('fecha'))
         return str(idProduct), 201
 
     @app.route('/product/<id>', methods= ['PUT'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def update_product(id):
         jsonValue = request.get_json()
-        idProduct = tablaProducto('ACTUALIZAR',jsonValue.get('name'),jsonValue.get('description'),jsonValue.get('amount'),jsonValue.get('real_amount'),jsonValue.get('code'),id)
+        idProduct = tablaProducto('ACTUALIZAR',jsonValue.get('name'),jsonValue.get('description'),jsonValue.get('amount'),jsonValue.get('real_amount'),jsonValue.get('code'),jsonValue.get('fecha'),id,jsonValue.get('isIngreso'),jsonValue.get('difference'))
         return str(idProduct), 200
-
-
 
     return app
 
