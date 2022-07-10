@@ -1,10 +1,10 @@
 import email
 from email.headerregistry import Address
 from xml.dom.minidom import Identified
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 import os
-from .db import executeQuery, tablaAgente, tablaCliente
+from .db import executeQuery, tablaAgente, tablaCliente, tablaProducto
 from configparser import SafeConfigParser
 from openpyxl import Workbook
 
@@ -86,6 +86,30 @@ def create_app(test_config=None):
             return str(idCliente), 200
         else:
             return  'NoExisteAgente' , 409
+
+    @app.route('/product/<name>', methods= ['GET'])
+    @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
+    def get_data_product(name):
+        rows = executeQuery("SELECT id, nombre, descripcion, existencia, existencia_real FROM producto where nombre == \""+name+"\"")
+        data =[]
+        for row in rows:
+            data.append({'id':row[0],'name':row[1],'description':row[2],'amount':row[3],'real_amount':row[4]})
+        return jsonify(data), 200 if len(data) else 204
+
+    @app.route('/product', methods= ['POST'])
+    @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
+    def insert_product():
+        jsonValue = request.get_json()
+        idProduct = tablaProducto('INSERTAR',jsonValue.get('name'),jsonValue.get('description'),jsonValue.get('amount'),jsonValue.get('real_amount'))
+        return str(idProduct), 201
+
+    @app.route('/product/<id>', methods= ['PUT'])
+    @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
+    def update_product(id):
+        jsonValue = request.get_json()
+        idProduct = tablaProducto('ACTUALIZAR',jsonValue.get('name'),jsonValue.get('description'),jsonValue.get('amount'),jsonValue.get('real_amount'),id)
+        return str(idProduct), 200
+
 
 
     return app

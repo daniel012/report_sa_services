@@ -126,7 +126,7 @@ def tablaCompras(sql, idproducto, empresa, cantidad, costo):
     # We can also close the connection if we are done with it.
     con.close()
 
-def tablaProducto(sql, nombre, descripcion, existencia, existencia_real):
+def tablaProducto(sql, nombre, descripcion, existencia, existencia_real, id=NULL):
     # Stabilished a connection
     con = sqlite3.connect('msa.db')
     # Create a cursor objet
@@ -134,12 +134,16 @@ def tablaProducto(sql, nombre, descripcion, existencia, existencia_real):
 
     if sql == "INSERTAR":
         instruction = f"INSERT INTO producto (nombre, descripcion, existencia, existencia_real) VALUES ('{nombre}', '{descripcion}', '{existencia}', '{existencia_real}')" 
+        id = cur.lastrowid
+    elif sql == "ACTUALIZAR":
+        instruction = f"UPDATE producto SET nombre = '{nombre}' , descripcion = '{descripcion}' , existencia = '{existencia}', existencia_real = '{existencia_real}' WHERE id = '{id}' " 
 
     cur.execute(instruction)
     # Save (commit) the changes
     con.commit()
     # We can also close the connection if we are done with it.
     con.close()
+    return id
 
 def tablaProductoVenta(sql, idproducto, idventa, cantidad, entregado, costo):
     # Stabilished a connection
