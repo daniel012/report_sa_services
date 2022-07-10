@@ -83,7 +83,6 @@ def tablaAgente(sql, nombre, direccion, telefono, correo, id=NULL):
     elif sql == "ACTUALIZAR":
         instruction = f"UPDATE agente SET nombre = '{nombre}' , direccion = '{direccion}' , telefono = '{telefono}' WHERE id = '{id}' " 
 
-    print(instruction)
     cur.execute(instruction)
     # Save (commit) the changes
     con.commit()
@@ -92,7 +91,7 @@ def tablaAgente(sql, nombre, direccion, telefono, correo, id=NULL):
     return id
 
 
-def tablaCliente(sql, idagente, nombre, rfc, telefono, correo):
+def tablaCliente(sql, idagente, nombre, rfc, telefono, correo, id=NULL):
     # Stabilished a connection
     con = sqlite3.connect('msa.db')
     # Create a cursor objet
@@ -100,6 +99,9 @@ def tablaCliente(sql, idagente, nombre, rfc, telefono, correo):
 
     if sql == "INSERTAR":
         instruction = f"INSERT INTO cliente (idagente, nombre, rfc, telefono, correo) VALUES ({idagente}, '{nombre}', '{rfc}', '{telefono}', '{correo}' )" 
+        id = cur.lastrowid
+    elif sql == "ACTUALIZAR":
+        instruction = f"UPDATE cliente SET idagente = '{idagente}' , nombre = '{nombre}' , rfc = '{rfc}', telefono = '{telefono}' WHERE id = '{id}' "
 
     cur.execute(instruction)
     id = cur.lastrowid
