@@ -87,27 +87,27 @@ def create_app(test_config=None):
         else:
             return  'NoExisteAgente' , 409
 
-    @app.route('/product/<name>', methods= ['GET'])
+    @app.route('/product/<code>', methods= ['GET'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
-    def get_data_product(name):
-        rows = executeQuery("SELECT id, nombre, descripcion, existencia, existencia_real FROM producto where nombre == \""+name+"\"")
+    def get_data_product(code):
+        rows = executeQuery("SELECT id, nombre, descripcion, existencia, existencia_real, nom_corto FROM producto where nom_corto == \""+code+"\"")
         data =[]
         for row in rows:
-            data.append({'id':row[0],'name':row[1],'description':row[2],'amount':row[3],'real_amount':row[4]})
+            data.append({'id':row[0],'name':row[1],'description':row[2],'amount':row[3],'real_amount':row[4],'code': row[5]})
         return jsonify(data), 200 if len(data) else 204
 
     @app.route('/product', methods= ['POST'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def insert_product():
         jsonValue = request.get_json()
-        idProduct = tablaProducto('INSERTAR',jsonValue.get('name'),jsonValue.get('description'),jsonValue.get('amount'),jsonValue.get('real_amount'))
+        idProduct = tablaProducto('INSERTAR',jsonValue.get('name'),jsonValue.get('description'),jsonValue.get('amount'),jsonValue.get('real_amount'),jsonValue.get('code'))
         return str(idProduct), 201
 
     @app.route('/product/<id>', methods= ['PUT'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def update_product(id):
         jsonValue = request.get_json()
-        idProduct = tablaProducto('ACTUALIZAR',jsonValue.get('name'),jsonValue.get('description'),jsonValue.get('amount'),jsonValue.get('real_amount'),id)
+        idProduct = tablaProducto('ACTUALIZAR',jsonValue.get('name'),jsonValue.get('description'),jsonValue.get('amount'),jsonValue.get('real_amount'),jsonValue.get('code'),id)
         return str(idProduct), 200
 
 

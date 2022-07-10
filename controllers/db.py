@@ -2,9 +2,8 @@ from asyncio.windows_events import NULL
 import sqlite3
 
 def createDB():
-
     # Stabilished a connection
-    con = sqlite3.connect('msa.db')
+    con = sqlite3.connect('C:\\Users\\jdaniel\\Desktop\\calera_project\\report_sa_services\\msa.db')
     # Create a cursor objet
     cur = con.cursor()
 
@@ -12,6 +11,7 @@ def createDB():
     cur.execute('''CREATE TABLE producto (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nombre TEXT,
+        nom_corto TEXT,
         descripcion TEXT,
         existencia INT,
         existencia_real INT)''')
@@ -126,17 +126,17 @@ def tablaCompras(sql, idproducto, empresa, cantidad, costo):
     # We can also close the connection if we are done with it.
     con.close()
 
-def tablaProducto(sql, nombre, descripcion, existencia, existencia_real, id=NULL):
+def tablaProducto(sql, nombre, descripcion, existencia, existencia_real, code, id=NULL):
     # Stabilished a connection
     con = sqlite3.connect('msa.db')
     # Create a cursor objet
     cur = con.cursor()
 
     if sql == "INSERTAR":
-        instruction = f"INSERT INTO producto (nombre, descripcion, existencia, existencia_real) VALUES ('{nombre}', '{descripcion}', '{existencia}', '{existencia_real}')" 
+        instruction = f"INSERT INTO producto (nombre, descripcion, existencia, existencia_real, nom_corto) VALUES ('{nombre}', '{descripcion}', '{existencia}', '{existencia_real}', '{code}')" 
         id = cur.lastrowid
     elif sql == "ACTUALIZAR":
-        instruction = f"UPDATE producto SET nombre = '{nombre}' , descripcion = '{descripcion}' , existencia = '{existencia}', existencia_real = '{existencia_real}' WHERE id = '{id}' " 
+        instruction = f"UPDATE producto SET nombre = '{nombre}' , descripcion = '{descripcion}' , existencia = '{existencia}', existencia_real = '{existencia_real}', nom_corto = '{code}' WHERE id = '{id}' " 
 
     cur.execute(instruction)
     # Save (commit) the changes
