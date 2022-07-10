@@ -1,3 +1,4 @@
+from email.headerregistry import Address
 from xml.dom.minidom import Identified
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS, cross_origin
@@ -27,19 +28,25 @@ def create_app(test_config=None):
     @app.route('/agent/<correo>', methods= ['GET'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def get_data(correo):
-        #rows = executeQuery("PRAGMA database_list;")
         rows = executeQuery("SELECT * FROM agente where correo == \""+correo+"\"")
         data =[]
         for row in rows:
-            data.append([x for x in row])
-        return jsonify(data)
+            data.append({'id':row[0],'name':row[1],'address':row[2],'number':row[3],'email':row[4]})
+        return jsonify(data), 200 if len(data) else 204
 
     @app.route('/agent', methods= ['POST'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def insertAgent():
         jsonValue = request.get_json()
-        tablaAgente('INSERTAR',jsonValue.get('name'),jsonValue.get('address'),jsonValue.get('phone'),jsonValue.get('email'))
-        return 'ok'
+        idAgente = tablaAgente('INSERTAR',jsonValue.get('name'),jsonValue.get('address'),jsonValue.get('phone'),jsonValue.get('email'))
+        return str(idAgente), 201
+
+    @app.route('/agent/<id>', methods= ['PUT'])
+    @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
+    def updateAgent(id):
+        jsonValue = request.get_json()
+        idAgente = tablaAgente('ACTUALIZAR',jsonValue.get('name'),jsonValue.get('address'),jsonValue.get('phone'),jsonValue.get('email'),id)
+        return str(idAgente), 200
 
 
 

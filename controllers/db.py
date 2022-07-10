@@ -1,3 +1,4 @@
+from asyncio.windows_events import NULL
 import sqlite3
 
 def createDB():
@@ -70,20 +71,26 @@ def createDB():
     # We can also close the connection if we are done with it.
     con.close()
 
-def tablaAgente(sql, nombre, direccion, telefono, correo):
+def tablaAgente(sql, nombre, direccion, telefono, correo, id=NULL):
     # Stabilished a connection
     con = sqlite3.connect('msa.db')
     # Create a cursor objet
     cur = con.cursor()
 
     if sql == "INSERTAR":
-        instruction = f"INSERT INTO agente (nombre, direccion, telefono, correo) VALUES ('{nombre}', '{direccion}', '{telefono}', '{correo}' )" 
+        instruction = f"INSERT INTO agente (nombre, direccion, telefono, correo) VALUES ('{nombre}', '{direccion}', '{telefono}', '{correo}' )"
+        id = cur.lastrowid
+    elif sql == "ACTUALIZAR":
+        instruction = f"UPDATE agente SET nombre = '{nombre}' , direccion = '{direccion}' , telefono = '{telefono}' WHERE id = '{id}' " 
 
+    print(instruction)
     cur.execute(instruction)
     # Save (commit) the changes
     con.commit()
     # We can also close the connection if we are done with it.
     con.close()
+    return id
+
 
 def tablaCliente(sql, idagente, nombre, rfc, telefono, correo):
     # Stabilished a connection
