@@ -187,8 +187,10 @@ def tablaVenta(sql, idcliente, fecha, forma_pago, monto_pago, total, factura):
     cur.execute(instruction)
     # Save (commit) the changes
     con.commit()
+    id = cur.lastrowid
     # We can also close the connection if we are done with it.
     con.close()
+    return id
 
 def executeQuery(query):
     con = sqlite3.connect('msa.db')

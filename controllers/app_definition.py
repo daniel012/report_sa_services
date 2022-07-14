@@ -4,7 +4,7 @@ from xml.dom.minidom import Identified
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 import os
-from .db import executeQuery, tablaAgente, tablaCliente, tablaProducto
+from .db import executeQuery, tablaAgente, tablaCliente, tablaProducto, tablaVenta, tablaProductoVenta
 from configparser import SafeConfigParser
 from openpyxl import Workbook
 from datetime import date
@@ -101,7 +101,6 @@ def create_app(test_config=None):
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def insert_product():
         jsonValue = request.get_json()
-        print(jsonValue.get('productPrice'));
         idProduct = tablaProducto('INSERTAR',jsonValue.get('name'),jsonValue.get('description'),jsonValue.get('amount'),jsonValue.get('real_amount'),jsonValue.get('code'),jsonValue.get('fecha'), jsonValue.get('productPrice'))
         return str(idProduct), 201
 
@@ -111,6 +110,15 @@ def create_app(test_config=None):
         jsonValue = request.get_json()
         idProduct = tablaProducto('ACTUALIZAR',jsonValue.get('name'),jsonValue.get('description'),jsonValue.get('amount'),jsonValue.get('real_amount'),jsonValue.get('code'),jsonValue.get('fecha'), jsonValue.get('productPrice'),id,jsonValue.get('isIngreso'),jsonValue.get('difference'))
         return str(idProduct), 200
+
+    @app.route('/sell', methods= ['POST'])
+    @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
+    def insert_sell():
+        jsonValue = request.get_json()
+        idVenta = tablaVenta('INSERTAR',jsonValue.get('client'),jsonValue.get('dateSell'),0,jsonValue.get('payment'),jsonValue.get('total'),0)
+        for i in jsonValue.get('list'):
+            tablaProductoVenta('INSERTAR',i.get('id'),idVenta,i.get('amount'),i.get('amount'),i.get('unitPrice'))
+        return str(idVenta), 201
 
     return app
 
