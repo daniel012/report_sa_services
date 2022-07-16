@@ -4,7 +4,7 @@ from xml.dom.minidom import Identified
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 import os
-from .db import executeQuery, tablaAgente, tablaCliente, tablaProducto, tablaVenta, tablaProductoVenta
+from .db import executeQuery, tablaAgente, tablaCliente, tablaProducto, tablaVenta, tablaProductoVenta, actualizar_producto_existencia
 from configparser import SafeConfigParser
 from openpyxl import Workbook
 from datetime import date
@@ -115,10 +115,14 @@ def create_app(test_config=None):
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def insert_sell():
         jsonValue = request.get_json()
-        idVenta = tablaVenta('INSERTAR',jsonValue.get('client'),jsonValue.get('dateSell'),0,jsonValue.get('payment'),jsonValue.get('total'),0)
-        for i in jsonValue.get('list'):
-            tablaProductoVenta('INSERTAR',i.get('id'),idVenta,i.get('amount'),i.get('amount'),i.get('unitPrice'))
-        return str(idVenta), 201
+        idVenta = tablaVenta('INSERTAR',jsonValue.get('client'),jsonValue.get('dateSell'),jsonValue.get('paymentType'),jsonValue.get('payment'),jsonValue.get('total'),jsonValue.get('invoice'), jsonValue.get('delivered'))
+        if idVenta != -1:
+            for i in jsonValue.get('list'):
+                tablaProductoVenta('INSERTAR',i.get('id'),idVenta,i.get('amount'),i.get('unitPrice'))
+                actualizar_producto_existencia(i.get('id'),i.get('newAmount'))
+            return str(idVenta), 201
+        else: 
+            return 'FACTURA_REPETIDA', 409
 
     return app
 

@@ -45,6 +45,7 @@ def createDB():
         forma_pago INT,
         monto_pago REAL,
         total REAL,
+        entregado INT,
         factura TEXT)''')
 
     cur.execute('''CREATE TABLE historial_pagos (
@@ -60,7 +61,6 @@ def createDB():
         idproducto INT,
         idventa INT,
         cantidad INT,
-        entregado INT,
         precio REAL)''')
 
     cur.execute('''CREATE TABLE producto_bitacora (
@@ -160,37 +160,50 @@ def tablaProducto(sql, nombre, descripcion, existencia, existencia_real, code, f
     con.close()
     return id
 
-def tablaProductoVenta(sql, idproducto, idventa, cantidad, entregado, costo):
+def actualizar_producto_existencia(id, existencia):
     # Stabilished a connection
     con = sqlite3.connect('msa.db')
     # Create a cursor objet
     cur = con.cursor()
-
-    if sql == "INSERTAR":
-        instruction = f"INSERT INTO producto_venta (idproducto, idventa, cantidad, entregado, precio) VALUES ({idproducto}, {idventa}, {cantidad}, {entregado}, {costo})" 
-
+    instruction = f"UPDATE producto SET existencia = '{existencia}', existencia_real = '{existencia}' WHERE id = '{id}' " 
     cur.execute(instruction)
     # Save (commit) the changes
     con.commit()
-    # We can also close the connection if we are done with it.
-    con.close()
-
-def tablaVenta(sql, idcliente, fecha, forma_pago, monto_pago, total, factura):
-    # Stabilished a connection
-    con = sqlite3.connect('msa.db')
-    # Create a cursor objet
-    cur = con.cursor()
-
-    if sql == "INSERTAR":
-        instruction = f"INSERT INTO venta (idcliente, fecha, forma_pago, monto_pago, total, factura) VALUES ('{idcliente}', '{fecha}', '{forma_pago}', '{monto_pago}', '{total}', '{factura}')" 
-
-    cur.execute(instruction)
-    # Save (commit) the changes
-    con.commit()
-    id = cur.lastrowid
     # We can also close the connection if we are done with it.
     con.close()
     return id
+
+
+def tablaProductoVenta(sql, idproducto, idventa, cantidad, costo):
+    # Stabilished a connection
+    con = sqlite3.connect('msa.db')
+    # Create a cursor objet
+    cur = con.cursor()
+
+    if sql == "INSERTAR":
+        instruction = f"INSERT INTO producto_venta (idproducto, idventa, cantidad, precio) VALUES ({idproducto}, {idventa}, {cantidad}, {costo})" 
+        print(instruction)
+    cur.execute(instruction)
+    # Save (commit) the changes
+    con.commit()
+    # We can also close the connection if we are done with it.
+    con.close()
+
+def tablaVenta(sql, idcliente, fecha, forma_pago, monto_pago, total, factura, entregado):
+    if sql == "INSERTAR":
+        if factura != '' :
+            facturabd = executeQuery(f"SELECT factura FROM venta WHERE factura = '{factura}'")
+            if len(facturabd) != 0:
+                return -1
+        con = sqlite3.connect('msa.db')
+        cur = con.cursor()
+        instruction = f"INSERT INTO venta (idcliente, fecha, forma_pago, monto_pago, total, factura, entregado) VALUES ('{idcliente}', '{fecha}', '{forma_pago}', '{monto_pago}', '{total}', '{factura}', '{entregado}')" 
+        cur.execute(instruction)
+        con.commit()
+        id = cur.lastrowid
+        con.close()
+        return id
+        
 
 def executeQuery(query):
     con = sqlite3.connect('msa.db')
