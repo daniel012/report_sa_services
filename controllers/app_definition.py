@@ -124,6 +124,27 @@ def create_app(test_config=None):
         else: 
             return 'FACTURA_REPETIDA', 409
 
+    @app.route('/sell/<id>', methods= ['GET'])
+    @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
+    def search_sell(id):
+        rows = executeQuery("SELECT id, fecha, forma_pago, monto_pago, total, entregado, factura FROM venta where id == \""+id+"\"")
+        if len(rows) != 0 :
+            data =[]
+            products = []
+            listProducts = executeQuery("SELECT producto_venta.cantidad, producto_venta.precio, producto.nombre,producto.nom_corto FROM producto_venta INNER JOIN producto on producto_venta.idproducto = producto.id where idventa == \""+id+"\"")
+
+            for row in listProducts:
+                products.append({'amount':row[0],'unitPrice':row[1], 'product': row[2], 'code': row[3]})
+            
+            row = rows[0]
+            data.append({'id':row[0],'date':row[1],'paymentType':row[2],'payment':row[3],'total':row[4],'delivered': row[5], 'invoice':row[6], 'list': products })
+
+            return jsonify(data), 200
+            
+            
+        else: 
+            return 'VENTA_NO_ENCONTRADA', 204
+
     return app
 
 
