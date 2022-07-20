@@ -203,7 +203,20 @@ def tablaVenta(sql, idcliente, fecha, forma_pago, monto_pago, total, factura, en
         id = cur.lastrowid
         con.close()
         return id
-        
+
+def insertarHistorialPago(idventa, payment, newPayment = None):
+    con = sqlite3.connect('msa.db')
+    cur = con.cursor()
+    instruction = f"INSERT INTO historial_pagos (idventa, fecha) VALUES ('{idventa}', '{payment}')" 
+    cur.execute(instruction)
+    id = cur.lastrowid
+    if newPayment is not None:
+        instruction = f"UPDATE venta SET monto_pago = {newPayment} where id = '{idventa}'" 
+        cur.execute(instruction)
+    con.commit()
+    con.close()
+    return id
+ 
 
 def executeQuery(query):
     con = sqlite3.connect('msa.db')

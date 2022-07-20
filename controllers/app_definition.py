@@ -4,7 +4,7 @@ from xml.dom.minidom import Identified
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 import os
-from .db import executeQuery, tablaAgente, tablaCliente, tablaProducto, tablaVenta, tablaProductoVenta, actualizar_producto_existencia
+from .db import executeQuery, tablaAgente, tablaCliente, tablaProducto, tablaVenta, tablaProductoVenta, actualizar_producto_existencia, insertarHistorialPago
 from configparser import SafeConfigParser
 from openpyxl import Workbook
 from datetime import date
@@ -115,7 +115,10 @@ def create_app(test_config=None):
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def insert_sell():
         jsonValue = request.get_json()
-        idVenta = tablaVenta('INSERTAR',jsonValue.get('client'),jsonValue.get('dateSell'),jsonValue.get('paymentType'),jsonValue.get('payment'),jsonValue.get('total'),jsonValue.get('invoice'), jsonValue.get('delivered'))
+        payment = jsonValue.get('payment')
+        idVenta = tablaVenta('INSERTAR',jsonValue.get('client'),jsonValue.get('dateSell'),jsonValue.get('paymentType'),payment,jsonValue.get('total'),jsonValue.get('invoice'), jsonValue.get('delivered'))
+        if payment != '' and float(payment) != 0:
+            insertarHistorialPago(idVenta, float(payment))
         if idVenta != -1:
             for i in jsonValue.get('list'):
                 tablaProductoVenta('INSERTAR',i.get('id'),idVenta,i.get('amount'),i.get('unitPrice'))
@@ -140,10 +143,26 @@ def create_app(test_config=None):
             data.append({'id':row[0],'date':row[1],'paymentType':row[2],'payment':row[3],'total':row[4],'delivered': row[5], 'invoice':row[6], 'list': products })
 
             return jsonify(data), 200
-            
-            
         else: 
             return 'VENTA_NO_ENCONTRADA', 204
+
+    @app.route('/payment', methods= ['POST'])
+    @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
+    def insert_payment():
+        jsonValue = request.get_json()
+        idSell = jsonValue.get('idSell')
+        payment = jsonValue.get('payment')
+        instruction = f"SELECT id, total , monto_pago FROM venta where id == '{idSell}'"
+        rows = executeQuery(instruction)
+        if len(rows) == 0: 
+            return 'VENTA_NO_ENCONTRADA', 204
+        sell = rows[0]
+        newPayment = float(sell[2]) + float(payment)
+        total = sell[1]
+        if total < newPayment:
+            return 'MONTO_INVALIDO', 409
+        idPayment = insertarHistorialPago(idSell, payment, newPayment)
+        return str(idPayment), 200
 
     return app
 
