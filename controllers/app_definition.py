@@ -4,7 +4,7 @@ from xml.dom.minidom import Identified
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 import os
-from .db import executeQuery, tablaAgente, tablaCliente, tablaProducto, tablaVenta, tablaProductoVenta, actualizar_producto_existencia, insertarHistorialPago
+from .db import executeQuery, tablaAgente, tablaCliente, tablaProducto, tablaVenta, tablaProductoVenta, actualizar_producto_existencia, insertarHistorialPago, insertProductHistory
 from configparser import SafeConfigParser
 from openpyxl import Workbook
 from datetime import date
@@ -88,10 +88,19 @@ def create_app(test_config=None):
         else:
             return  'NoExisteAgente' , 409
 
+    @app.route('/product', methods= ['GET'])
+    @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
+    def get_all_data_product():
+        rows = executeQuery("SELECT id, nombre, descripcion, existencia, existencia_real, nom_corto, precio_sugerido FROM producto")
+        data =[]
+        for row in rows:
+            data.append({'id':row[0],'name':row[1],'description':row[2],'amount':row[3],'real_amount':row[4],'code': row[5], 'productPrice':row[6] })
+        return jsonify(data), 200 if len(data) else 204
+
     @app.route('/product/<code>', methods= ['GET'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def get_data_product(code):
-        rows = executeQuery("SELECT id, nombre, descripcion, existencia, existencia_real, nom_corto, precio_sugerido FROM producto where nom_corto == \""+code+"\"")
+        rows = executeQuery(f"SELECT id, nombre, descripcion, existencia, existencia_real, nom_corto, precio_sugerido FROM producto where nom_corto == '{code}'")
         data =[]
         for row in rows:
             data.append({'id':row[0],'name':row[1],'description':row[2],'amount':row[3],'real_amount':row[4],'code': row[5], 'productPrice':row[6] })
@@ -118,11 +127,15 @@ def create_app(test_config=None):
         payment = jsonValue.get('payment')
         idVenta = tablaVenta('INSERTAR',jsonValue.get('client'),jsonValue.get('dateSell'),jsonValue.get('paymentType'),payment,jsonValue.get('total'),jsonValue.get('invoice'), jsonValue.get('delivered'))
         if payment != '' and float(payment) != 0:
-            insertarHistorialPago(idVenta, float(payment))
+            insertarHistorialPago(idVenta, round(float(payment), 2))
         if idVenta != -1:
             for i in jsonValue.get('list'):
+                # registra el precio y la cantidad por producto
                 tablaProductoVenta('INSERTAR',i.get('id'),idVenta,i.get('amount'),i.get('unitPrice'))
+                # actualiza cantidad del producto
                 actualizar_producto_existencia(i.get('id'),i.get('newAmount'))
+                # ingresa el egreso de un producto en su bitacora 
+                insertProductHistory(i.get('id'), jsonValue.get('dateSell'), i.get('amount'), 0, idVenta)
             return str(idVenta), 201
         else: 
             return 'FACTURA_REPETIDA', 409
@@ -130,11 +143,11 @@ def create_app(test_config=None):
     @app.route('/sell/<id>', methods= ['GET'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def search_sell(id):
-        rows = executeQuery("SELECT id, fecha, forma_pago, monto_pago, total, entregado, factura FROM venta where id == \""+id+"\"")
+        rows = executeQuery(f"SELECT id, fecha, forma_pago, monto_pago, total, entregado, factura FROM venta where id == '{id}'")
         if len(rows) != 0 :
             data =[]
             products = []
-            listProducts = executeQuery("SELECT producto_venta.cantidad, producto_venta.precio, producto.nombre,producto.nom_corto FROM producto_venta INNER JOIN producto on producto_venta.idproducto = producto.id where idventa == \""+id+"\"")
+            listProducts = executeQuery(f"SELECT producto_venta.cantidad, producto_venta.precio, producto.nombre,producto.nom_corto FROM producto_venta INNER JOIN producto on producto_venta.idproducto = producto.id where idventa == '{id}'")
 
             for row in listProducts:
                 products.append({'amount':row[0],'unitPrice':row[1], 'product': row[2], 'code': row[3]})
@@ -157,12 +170,23 @@ def create_app(test_config=None):
         if len(rows) == 0: 
             return 'VENTA_NO_ENCONTRADA', 204
         sell = rows[0]
-        newPayment = float(sell[2]) + float(payment)
+        newPayment = round(float(sell[2]),2 ) + round(float(payment), 2)
+        print(f"newPayment: {newPayment}")
+
         total = sell[1]
         if total < newPayment:
             return 'MONTO_INVALIDO', 409
         idPayment = insertarHistorialPago(idSell, payment, newPayment)
         return str(idPayment), 200
+
+    @app.route('/productHistory/<idProduct>', methods= ['GET'])
+    @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
+    def get_product_history(idProduct):
+        rows = executeQuery(f"SELECT id, fecha, cantidad, ingreso, idventa  FROM producto_bitacora where idproducto == '{idProduct}'")
+        data =[]
+        for row in rows:
+            data.append({'id':row[0],'date':row[1],'amount':row[2],'type':row[3],'idSell':row[4] })
+        return jsonify(data), 200 if len(data) else 204
 
     return app
 

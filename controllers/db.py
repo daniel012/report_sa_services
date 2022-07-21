@@ -216,7 +216,16 @@ def insertarHistorialPago(idventa, payment, newPayment = None):
     con.commit()
     con.close()
     return id
- 
+
+def insertProductHistory(idproducto, fecha, cantidad,ingreso, idventa):
+    con = sqlite3.connect('msa.db')
+    cur = con.cursor()
+    instruction = f"INSERT INTO producto_bitacora (idproducto, fecha, cantidad, ingreso, idventa) VALUES ('{idproducto}', '{fecha}', '{cantidad}', '{ingreso}', '{idventa}')" 
+    cur.execute(instruction)
+    id = cur.lastrowid
+    con.commit()
+    con.close()
+    return id
 
 def executeQuery(query):
     con = sqlite3.connect('msa.db')
