@@ -150,9 +150,13 @@ def create_app(test_config=None):
 
             for row in listProducts:
                 products.append({'amount':row[0],'unitPrice':row[1], 'product': row[2], 'code': row[3]})
-            
+
+            paymentInfo = executeQuery(f"SELECT historial_pagos.fecha, historial_pagos.monto  FROM historial_pagos INNER JOIN venta on historial_pagos.idventa = venta.id where idventa == '{id}'")
+            paymentDictionary = []
+            for i in paymentInfo:
+                paymentDictionary.append({'monto':i[1], 'fecha':i[0]})
             row = rows[0]
-            data.append({'id':row[0],'date':row[1],'paymentType':row[2],'payment':row[3],'total':row[4],'delivered': row[5], 'invoice':row[6], 'list': products, 'client':row[7], 'agent':row[8] })
+            data.append({'id':row[0],'date':row[1],'paymentType':row[2],'payment':row[3],'total':row[4],'delivered': row[5], 'invoice':row[6], 'list': products, 'client':row[7], 'agent':row[8], 'paymentHistory': paymentDictionary})
 
             return jsonify(data), 200
         else: 
