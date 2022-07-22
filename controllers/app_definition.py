@@ -142,7 +142,7 @@ def create_app(test_config=None):
     @app.route('/sell/<id>', methods= ['GET'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def search_sell(id):
-        rows = executeQuery(f"SELECT id, fecha, forma_pago, monto_pago, total, entregado, factura FROM venta where id == '{id}'")
+        rows = executeQuery(f"SELECT venta.id, fecha, forma_pago, monto_pago, total, entregado, factura, cliente.nombre, agente.nombre FROM venta INNER JOIN cliente on venta.idcliente == cliente.id INNER JOIN agente on agente.id == cliente.idagente where venta.id == '{id}'")
         if len(rows) != 0 :
             data =[]
             products = []
@@ -152,7 +152,7 @@ def create_app(test_config=None):
                 products.append({'amount':row[0],'unitPrice':row[1], 'product': row[2], 'code': row[3]})
             
             row = rows[0]
-            data.append({'id':row[0],'date':row[1],'paymentType':row[2],'payment':row[3],'total':row[4],'delivered': row[5], 'invoice':row[6], 'list': products })
+            data.append({'id':row[0],'date':row[1],'paymentType':row[2],'payment':row[3],'total':row[4],'delivered': row[5], 'invoice':row[6], 'list': products, 'client':row[7], 'agent':row[8] })
 
             return jsonify(data), 200
         else: 
