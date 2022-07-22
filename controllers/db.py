@@ -1,5 +1,4 @@
 import sqlite3
-from datetime import date
 
 def createDB():
     # Stabilished a connection
@@ -201,10 +200,10 @@ def tablaVenta(sql, idcliente, fecha, forma_pago, monto_pago, total, factura, en
         con.close()
         return id
 
-def insertarHistorialPago(idventa, payment, newPayment = None):
+def insertarHistorialPago(idventa,paymentDate,  payment, newPayment = None):
     con = sqlite3.connect('msa.db')
     cur = con.cursor()
-    instruction = f"INSERT INTO historial_pagos (idventa, monto, fecha) VALUES ('{idventa}', '{payment}', '{date.today()}')" 
+    instruction = f"INSERT INTO historial_pagos (idventa, monto, fecha) VALUES ('{idventa}', '{payment}', '{paymentDate}')" 
     cur.execute(instruction)
     id = cur.lastrowid
     if newPayment is not None:
