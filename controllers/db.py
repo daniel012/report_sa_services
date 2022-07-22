@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import date
 
 def createDB():
     # Stabilished a connection
@@ -52,9 +53,7 @@ def createDB():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         idventa INT,
         fecha TEXT,
-        nombre_corto TEXT,
-        existencia INT
-        existencia_real INT)''')
+        monto REAL)''')
 
     cur.execute('''CREATE TABLE producto_venta (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -150,7 +149,6 @@ def tablaProducto(sql, nombre, descripcion, existencia, existencia_real, code, f
     elif sql == "ACTUALIZAR":
         instruction = f"UPDATE producto SET nombre = '{nombre}' , descripcion = '{descripcion}' , existencia = '{existencia}', existencia_real = '{existencia_real}', nom_corto = '{code}' , precio_sugerido = '{precio_sugerido}' WHERE id = '{id}' " 
         cur.execute(instruction)
-        print(isIngreso)
         if id is not None and isIngreso is not None and difference is not None and fecha is not None:
             instruction = f"INSERT INTO producto_bitacora (idproducto, fecha, cantidad, ingreso) VALUES ('{id}', '{fecha}', '{difference}', '{isIngreso}')"
             cur.execute(instruction)
@@ -182,7 +180,6 @@ def tablaProductoVenta(sql, idproducto, idventa, cantidad, costo):
 
     if sql == "INSERTAR":
         instruction = f"INSERT INTO producto_venta (idproducto, idventa, cantidad, precio) VALUES ({idproducto}, {idventa}, {cantidad}, {costo})" 
-        print(instruction)
     cur.execute(instruction)
     # Save (commit) the changes
     con.commit()
@@ -207,7 +204,7 @@ def tablaVenta(sql, idcliente, fecha, forma_pago, monto_pago, total, factura, en
 def insertarHistorialPago(idventa, payment, newPayment = None):
     con = sqlite3.connect('msa.db')
     cur = con.cursor()
-    instruction = f"INSERT INTO historial_pagos (idventa, fecha) VALUES ('{idventa}', '{payment}')" 
+    instruction = f"INSERT INTO historial_pagos (idventa, monto, fecha) VALUES ('{idventa}', '{payment}', '{date.today()}')" 
     cur.execute(instruction)
     id = cur.lastrowid
     if newPayment is not None:
@@ -235,4 +232,4 @@ def executeQuery(query):
     con.close()
     return rows
 
-#createDB()
+# createDB()

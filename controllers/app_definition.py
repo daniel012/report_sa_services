@@ -55,7 +55,6 @@ def create_app(test_config=None):
     def get_dataClient(correo):
         rows = executeQuery("SELECT cliente.id,cliente.idagente,cliente.nombre,cliente.rfc,cliente.telefono,cliente.correo, agente.correo FROM cliente INNER JOIN agente on cliente.idagente = agente.id where cliente.correo == \""+correo+"\"")
         data =[]
-        print(rows)
         for row in rows:
             data.append({'id':row[0],'nombre':row[2],'rfc':row[3],'telefono':row[4],'correo':row[5], 'agente':{'id':row[1],'email': row[6] }})
         return jsonify(data), 200 if len(data) else 204
@@ -171,7 +170,6 @@ def create_app(test_config=None):
             return 'VENTA_NO_ENCONTRADA', 204
         sell = rows[0]
         newPayment = round(float(sell[2]),2 ) + round(float(payment), 2)
-        print(f"newPayment: {newPayment}")
 
         total = sell[1]
         if total < newPayment:

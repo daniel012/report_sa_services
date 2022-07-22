@@ -4,7 +4,6 @@ import os
 
 # using getlogin() returning username
 usuario = os.getlogin()
-print(usuario)
 fileex="C:\\Users\\"+usuario+"\\OneDrive\\Documentos\\Reportes\\sample.xlsx"
 
 workbook = Workbook(fileex)
