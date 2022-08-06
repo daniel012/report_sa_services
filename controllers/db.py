@@ -200,6 +200,15 @@ def tablaVenta(sql, idcliente, fecha, forma_pago, monto_pago, total, factura, en
         con.close()
         return id
 
+def VentaEntrega(id):
+    con = sqlite3.connect('msa.db')
+    cur = con.cursor()
+    instruction = f"UPDATE venta SET entregado = {True} where id = '{id}'" 
+    cur.execute(instruction)
+    con.commit()
+    con.close()
+    return id
+
 def insertarHistorialPago(idventa,paymentDate,  payment, newPayment = None):
     con = sqlite3.connect('msa.db')
     cur = con.cursor()
