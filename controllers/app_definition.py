@@ -126,9 +126,9 @@ def create_app(test_config=None):
             payment = 0
         else:
             payment = round(float(payment), 2)
-        idVenta = creatVenta(jsonValue.get('client'),jsonValue.get('dateSell'),payment,jsonValue.get('total'),jsonValue.get('invoice'), jsonValue.get('delivered'))
+        idVenta = creatVenta(jsonValue.get('client'),jsonValue.get('date'),payment,jsonValue.get('total'),jsonValue.get('invoice'), jsonValue.get('delivered'))
         if payment != 0:
-            insertarHistorialPago(idVenta, round(float(payment), 2),jsonValue.get('paymentType'))
+            insertarHistorialPago(idVenta, date.today(), payment ,jsonValue.get('paymentType'))
         if idVenta != -1:
             for i in jsonValue.get('list'):
                 # registra el precio y la cantidad por producto
@@ -136,7 +136,7 @@ def create_app(test_config=None):
                 # actualiza cantidad del producto
                 actualizar_producto_existencia(i.get('id'),i.get('newAmount'))
                 # ingresa el egreso de un producto en su bitacora 
-                insertProductHistory(i.get('id'), jsonValue.get('dateSell'), i.get('amount'), 0, idVenta)
+                insertProductHistory(i.get('id'), jsonValue.get('date'), i.get('amount'), 0, idVenta)
             return str(idVenta), 201
         else: 
             return 'FACTURA_REPETIDA', 409
