@@ -5,6 +5,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 import os
 from .db import executeQuery, tablaAgente, tablaCliente, tablaProducto, tablaVenta, tablaProductoVenta, actualizar_producto_existencia, insertarHistorialPago, insertProductHistory, get_agente, VentaEntrega
+from .reportes import reportes
 from configparser import SafeConfigParser
 from openpyxl import Workbook
 from datetime import date
@@ -193,6 +194,12 @@ def create_app(test_config=None):
         for row in rows:
             data.append({'id':row[0],'date':row[1],'amount':row[2],'type':row[3],'idSell':row[4] })
         return jsonify(data), 200 if len(data) else 204
+
+    @app.route('/report/agent', methods= ['GET'])
+    @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
+    def report_agent():
+        reportes()
+
 
     return app
 
