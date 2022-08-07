@@ -77,6 +77,16 @@ def createDB():
     # We can also close the connection if we are done with it.
     con.close()
 
+def get_agente(correo=None):
+    instruccion = f"SELECT agente.id,agente.nombre,agente.direccion,agente.telefono,agente.correo,cliente.nombre FROM agente LEFT JOIN cliente ON agente.id==cliente.idagente"
+    if correo is not None:
+        instruccion = instruccion + " where agente.correo == \""+correo+"\""
+    rows = executeQuery(instruccion)
+    data =[]
+    for row in rows:
+        data.append({'id':row[0],'name':row[1],'address':row[2],'number':row[3],'email':row[4],'client':row[5]})
+    return data
+
 def tablaAgente(sql, nombre, direccion, telefono, correo, id=None):
     # Stabilished a connection
     con = sqlite3.connect('msa.db')
@@ -224,7 +234,8 @@ def insertProductHistory(idproducto, fecha, cantidad,ingreso, idventa):
     return id
 
 def executeQuery(query):
-    con = sqlite3.connect('msa.db')
+    con = sqlite3.connect('C:\\Users\\uemar\\OneDrive\\Escritorio\\calera\\report_sa_services\\msa.db')
+    #con = sqlite3.connect('msa.db')
     cursor = con.cursor()
     cursor.execute(query)
     rows = cursor.fetchall()
