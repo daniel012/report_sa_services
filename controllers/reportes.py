@@ -1,7 +1,7 @@
 from openpyxl import load_workbook, Workbook
 import win32com.client
 #from win32com.client import Dispatch
-from .db import get_agente
+from .db import get_agente, get_productos
 import os
 import pythoncom
 import winshell
@@ -11,9 +11,9 @@ escritorio = winshell.desktop()
 hoy = date.today()
 hoyf = hoy.strftime("%d%m%Y")
 ruta = os.getcwd()
-data = get_agente()
 
 def catalogoAgentes():
+    data = get_agente()
     archivo = "catalogoAgentes"
     base = ruta+"\\reportes\\base\\o"+archivo+".xlsx"
     archivoe = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf+".xlsx"
@@ -40,7 +40,37 @@ def catalogoAgentes():
         contador += 1 
         contagent += 1
     wb.save(archivoe) 
-    crearPdf(archivoe, archivo)    
+    crearPdf(archivoe, archivo) 
+
+def catalogoProductos():
+    data = get_productos()
+    archivo = "catalogoProductos"
+    base = ruta+"\\reportes\\base\\o"+archivo+".xlsx"
+    archivoe = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf+".xlsx"
+    # Crear Excel
+    wb = load_workbook(base)
+    sheet = wb.active
+    contador = 6
+    contagent = 0
+    agenteant = ""
+    for i in range(len(data)):
+        agente = data[contagent].get('id')
+        nombre = data[contagent].get('name')
+        correo = data[contagent].get('email')
+        telefono = data[contagent].get('number')
+        cliente = data[contagent].get('client')
+        if agente != agenteant:
+            sheet['A'+str(contador)] = nombre
+            sheet['B'+str(contador)] = correo
+            sheet['C'+str(contador)] = telefono
+            sheet['D'+str(contador)] = cliente
+        else:
+            sheet['D'+str(contador)] = cliente
+        agenteant = agente
+        contador += 1 
+        contagent += 1
+    wb.save(archivoe) 
+    crearPdf(archivoe, archivo)       
 
     # Crear PDF
 def crearPdf(archivoe, archivo):

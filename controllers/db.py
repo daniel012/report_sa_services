@@ -87,6 +87,14 @@ def get_agente(correo=None):
         data.append({'id':row[0],'name':row[1],'address':row[2],'number':row[3],'email':row[4],'client':row[5]})
     return data
 
+def get_productos():
+    instruccion = f"SELECT nom_corto,descripcion,nombre FROM producto"
+    rows = executeQuery(instruccion)
+    data =[]
+    for row in rows:
+        data.append({'nom_corto':row[0],'descripcion':row[1],'nombre':row[2]})
+    return data
+
 def tablaAgente(sql, nombre, direccion, telefono, correo, id=None):
     # Stabilished a connection
     con = sqlite3.connect('msa.db')
