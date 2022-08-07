@@ -199,6 +199,7 @@ def create_app(test_config=None):
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def report_agent():
         reportes()
+        return 'ok'
 
 
     return app
