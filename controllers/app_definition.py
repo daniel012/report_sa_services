@@ -4,7 +4,7 @@ from xml.dom.minidom import Identified
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 import os
-from .db import executeQuery, tablaAgente, tablaCliente, tablaProducto, tablaVenta, tablaProductoVenta, actualizar_producto_existencia, insertarHistorialPago, insertProductHistory, get_agente, VentaEntrega
+from .db import *
 from .reportes import reportes
 from configparser import SafeConfigParser
 from openpyxl import Workbook
@@ -122,9 +122,13 @@ def create_app(test_config=None):
     def insert_sell():
         jsonValue = request.get_json()
         payment = jsonValue.get('payment')
-        idVenta = tablaVenta('INSERTAR',jsonValue.get('client'),jsonValue.get('dateSell'),jsonValue.get('paymentType'),payment,jsonValue.get('total'),jsonValue.get('invoice'), jsonValue.get('delivered'))
-        if payment != '' and float(payment) != 0:
-            insertarHistorialPago(idVenta, round(float(payment), 2))
+        if(payment == ''):
+            payment = 0
+        else:
+            payment = round(float(payment), 2)
+        idVenta = creatVenta(jsonValue.get('client'),jsonValue.get('dateSell'),payment,jsonValue.get('total'),jsonValue.get('invoice'), jsonValue.get('delivered'))
+        if payment != 0:
+            insertarHistorialPago(idVenta, round(float(payment), 2),jsonValue.get('paymentType'))
         if idVenta != -1:
             for i in jsonValue.get('list'):
                 # registra el precio y la cantidad por producto
@@ -183,7 +187,7 @@ def create_app(test_config=None):
         if total < newPayment:
             return 'MONTO_INVALIDO', 409
         paymentDate = date.today()
-        idPayment = insertarHistorialPago(idSell,paymentDate, payment, newPayment)
+        idPayment = insertarHistorialPago(idSell,paymentDate, payment,jsonValue.get('paymentType'), newPayment)
         return jsonify({'id':idPayment, 'amount': payment, 'date':str(paymentDate) }), 200
 
     @app.route('/productHistory/<idProduct>', methods= ['GET'])

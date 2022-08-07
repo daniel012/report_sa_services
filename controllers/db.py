@@ -195,20 +195,19 @@ def tablaProductoVenta(sql, idproducto, idventa, cantidad, costo):
     # We can also close the connection if we are done with it.
     con.close()
 
-def tablaVenta(sql, idcliente, fecha, forma_pago, monto_pago, total, factura, entregado):
-    if sql == "INSERTAR":
-        if factura != '' :
-            facturabd = executeQuery(f"SELECT factura FROM venta WHERE factura = '{factura}'")
-            if len(facturabd) != 0:
-                return -1
-        con = sqlite3.connect('msa.db')
-        cur = con.cursor()
-        instruction = f"INSERT INTO venta (idcliente, fecha, forma_pago, monto_pago, total, factura, entregado) VALUES ('{idcliente}', '{fecha}', '{forma_pago}', '{monto_pago}', '{total}', '{factura}', '{bool(entregado)}')" 
-        cur.execute(instruction)
-        con.commit()
-        id = cur.lastrowid
-        con.close()
-        return id
+def creatVenta(idcliente, fecha, monto_pago, total, factura, entregado):
+    if factura != '' :
+        facturabd = executeQuery(f"SELECT factura FROM venta WHERE factura = '{factura}'")
+        if len(facturabd) != 0:
+            return -1
+    con = sqlite3.connect('msa.db')
+    cur = con.cursor()
+    instruction = f"INSERT INTO venta (idcliente, fecha, monto_pago, total, factura, entregado) VALUES ('{idcliente}', '{fecha}', '{monto_pago}', '{total}', '{factura}', '{bool(entregado)}')" 
+    cur.execute(instruction)
+    con.commit()
+    id = cur.lastrowid
+    con.close()
+    return id
 
 def VentaEntrega(id):
     con = sqlite3.connect('msa.db')
@@ -219,10 +218,10 @@ def VentaEntrega(id):
     con.close()
     return id
 
-def insertarHistorialPago(idventa,paymentDate,  payment, newPayment = None):
+def insertarHistorialPago(idventa,paymentDate,  payment, paymentType, newPayment = None):
     con = sqlite3.connect('msa.db')
     cur = con.cursor()
-    instruction = f"INSERT INTO historial_pagos (idventa, monto, fecha) VALUES ('{idventa}', '{payment}', '{paymentDate}')" 
+    instruction = f"INSERT INTO historial_pagos (idventa, monto, fecha, forma_pago) VALUES ('{idventa}', '{payment}', '{paymentDate}', '{paymentType}')" 
     cur.execute(instruction)
     id = cur.lastrowid
     if newPayment is not None:
