@@ -144,7 +144,7 @@ def create_app(test_config=None):
     @app.route('/sell/<id>', methods= ['GET'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def search_sell(id):
-        rows = executeQuery(f"SELECT venta.id, fecha, forma_pago, monto_pago, total, entregado, factura, cliente.nombre, agente.nombre FROM venta INNER JOIN cliente on venta.idcliente == cliente.id INNER JOIN agente on agente.id == cliente.idagente where venta.id == '{id}'")
+        rows = executeQuery(f"SELECT venta.id, fecha, monto_pago, total, entregado, factura, cliente.nombre, agente.nombre FROM venta INNER JOIN cliente on venta.idcliente == cliente.id INNER JOIN agente on agente.id == cliente.idagente where venta.id == '{id}'")
         if len(rows) != 0 :
             data =[]
             products = []
@@ -153,12 +153,12 @@ def create_app(test_config=None):
             for row in listProducts:
                 products.append({'amount':row[0],'unitPrice':row[1], 'product': row[2], 'code': row[3]})
 
-            paymentInfo = executeQuery(f"SELECT historial_pagos.fecha, historial_pagos.monto  FROM historial_pagos INNER JOIN venta on historial_pagos.idventa = venta.id where idventa == '{id}'")
+            paymentInfo = executeQuery(f"SELECT historial_pagos.fecha, historial_pagos.monto, historial_pagos.forma_pago  FROM historial_pagos INNER JOIN venta on historial_pagos.idventa = venta.id where idventa == '{id}'")
             paymentDictionary = []
             for i in paymentInfo:
-                paymentDictionary.append({'amount':i[1], 'date':i[0]})
+                paymentDictionary.append({'amount':i[1], 'date':i[0], 'paymentType':i[2]})
             row = rows[0]
-            data.append({'id':row[0],'date':row[1],'paymentType':row[2],'payment':row[3],'total':row[4],'delivered': row[5], 'invoice':row[6], 'list': products, 'clientName':row[7], 'agent':row[8], 'paymentHistory': paymentDictionary})
+            data.append({'id':row[0],'date':row[1],'payment':row[2],'total':row[3],'delivered': row[4], 'invoice':row[5], 'list': products, 'clientName':row[6], 'agent':row[7], 'paymentHistory': paymentDictionary})
 
             return jsonify(data), 200
         else: 
@@ -176,6 +176,7 @@ def create_app(test_config=None):
         jsonValue = request.get_json()
         idSell = jsonValue.get('idSell')
         payment = jsonValue.get('payment')
+        paymentType = jsonValue.get('paymentType')
         instruction = f"SELECT id, total , monto_pago FROM venta where id == '{idSell}'"
         rows = executeQuery(instruction)
         if len(rows) == 0: 
@@ -187,8 +188,8 @@ def create_app(test_config=None):
         if total < newPayment:
             return 'MONTO_INVALIDO', 409
         paymentDate = date.today()
-        idPayment = insertarHistorialPago(idSell,paymentDate, payment,jsonValue.get('paymentType'), newPayment)
-        return jsonify({'id':idPayment, 'amount': payment, 'date':str(paymentDate) }), 200
+        idPayment = insertarHistorialPago(idSell,paymentDate, payment,paymentType, newPayment)
+        return jsonify({'id':idPayment, 'amount': payment, 'date':str(paymentDate), 'paymentType': str(paymentType)}), 200
 
     @app.route('/productHistory/<idProduct>', methods= ['GET'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
