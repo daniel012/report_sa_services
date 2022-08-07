@@ -5,19 +5,23 @@ from .db import get_agente
 import os
 import pythoncom
 import winshell
+from datetime import date
+
 
 #import db
 
 def reportes():
+    hoy = date.today()
+    hoyf = hoy.strftime("%d%m%Y")
     ruta = os.getcwd()
     escritorio = winshell.desktop()
     data = get_agente()
     base = ruta+"\\reportes\\base\\ocatalogoAgentes.xlsx"
-    archivo = escritorio+"\\REPORTES\\catalogoAgentes.xlsx"
+    archivo = escritorio+"\\REPORTES\\catalogoAgentes-"+hoyf+".xlsx"
     # Crear Excel
     wb = load_workbook(base)
     sheet = wb.active
-    contador = 5
+    contador = 6
     contagent = 0
     agenteant = ""
     for i in range(len(data)):
@@ -45,7 +49,7 @@ def reportes():
         excel_file = win32com.client.Dispatch("Excel.Application")
         xl_sheets = excel_file.Workbooks.Open(archivo)
         worksheets = xl_sheets.Worksheets[0]
-        worksheets.ExportAsFixedFormat(0, escritorio+"\\REPORTES\\catalogoAgentes.pdf")
+        worksheets.ExportAsFixedFormat(0, escritorio+"\\REPORTES\\catalogoAgentes-"+hoyf+".pdf")
         excel_file.quit()
     except Exception as inst:
         print("OS error: {0}".format(inst))
