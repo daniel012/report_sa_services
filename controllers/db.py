@@ -2,7 +2,7 @@ import sqlite3
 
 def createDB():
     # Stabilished a connection
-    con = sqlite3.connect('C:\\Users\\jdaniel\\Desktop\\calera_project\\report_sa_services\\msa.db')
+    con = sqlite3.connect('C:\\Users\\uemar\\Desktop\\calera\\report_sa_services\\msa.db')
     # Create a cursor objet
     cur = con.cursor()
 
@@ -42,7 +42,6 @@ def createDB():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         idcliente INT,
         fecha TEXT,
-        forma_pago INT,
         monto_pago REAL,
         total REAL,
         entregado INT,
@@ -52,6 +51,7 @@ def createDB():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         idventa INT,
         fecha TEXT,
+        forma_pago INT,
         monto REAL)''')
 
     cur.execute('''CREATE TABLE producto_venta (
@@ -251,4 +251,4 @@ def executeQuery(query):
     con.close()
     return rows
 
-# createDB()
+#createDB()
