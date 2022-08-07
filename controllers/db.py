@@ -203,7 +203,7 @@ def tablaVenta(sql, idcliente, fecha, forma_pago, monto_pago, total, factura, en
                 return -1
         con = sqlite3.connect('msa.db')
         cur = con.cursor()
-        instruction = f"INSERT INTO venta (idcliente, fecha, forma_pago, monto_pago, total, factura, entregado) VALUES ('{idcliente}', '{fecha}', '{forma_pago}', '{monto_pago}', '{total}', '{factura}', '{entregado}')" 
+        instruction = f"INSERT INTO venta (idcliente, fecha, forma_pago, monto_pago, total, factura, entregado) VALUES ('{idcliente}', '{fecha}', '{forma_pago}', '{monto_pago}', '{total}', '{factura}', '{bool(entregado)}')" 
         cur.execute(instruction)
         con.commit()
         id = cur.lastrowid
@@ -213,7 +213,7 @@ def tablaVenta(sql, idcliente, fecha, forma_pago, monto_pago, total, factura, en
 def VentaEntrega(id):
     con = sqlite3.connect('msa.db')
     cur = con.cursor()
-    instruction = f"UPDATE venta SET entregado = {True} where id = '{id}'" 
+    instruction = f"UPDATE venta SET entregado = '{True}' where id = '{id}'" 
     cur.execute(instruction)
     con.commit()
     con.close()
@@ -243,8 +243,8 @@ def insertProductHistory(idproducto, fecha, cantidad,ingreso, idventa):
     return id
 
 def executeQuery(query):
-    con = sqlite3.connect('C:\\Users\\uemar\\OneDrive\\Escritorio\\calera\\report_sa_services\\msa.db')
-    #con = sqlite3.connect('msa.db')
+    # con = sqlite3.connect('C:\\Users\\uemar\\OneDrive\\Escritorio\\calera\\report_sa_services\\msa.db')
+    con = sqlite3.connect('msa.db')
     cursor = con.cursor()
     cursor.execute(query)
     rows = cursor.fetchall()
