@@ -4,7 +4,7 @@ from xml.dom.minidom import Identified
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 import os
-from .db import executeQuery, tablaAgente, tablaCliente, tablaProducto, tablaVenta, tablaProductoVenta, actualizar_producto_existencia, insertarHistorialPago, insertProductHistory, get_agente
+from .db import executeQuery, tablaAgente, tablaCliente, tablaProducto, tablaVenta, tablaProductoVenta, actualizar_producto_existencia, insertarHistorialPago, insertProductHistory, get_agente, VentaEntrega
 from configparser import SafeConfigParser
 from openpyxl import Workbook
 from datetime import date
@@ -158,6 +158,12 @@ def create_app(test_config=None):
             return jsonify(data), 200
         else: 
             return 'VENTA_NO_ENCONTRADA', 204
+
+    @app.route('/sell/deliver/<id>', methods= ['PUT'])
+    @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
+    def sell_deliver(id):
+        VentaEntrega(id)
+        return 'OK', 200
 
     @app.route('/payment', methods= ['POST'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
