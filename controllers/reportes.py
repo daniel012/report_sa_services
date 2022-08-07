@@ -50,25 +50,17 @@ def catalogoProductos():
     # Crear Excel
     wb = load_workbook(base)
     sheet = wb.active
-    contador = 6
-    contagent = 0
-    agenteant = ""
+    contador = 5
+    contaprod = 0
     for i in range(len(data)):
-        agente = data[contagent].get('id')
-        nombre = data[contagent].get('name')
-        correo = data[contagent].get('email')
-        telefono = data[contagent].get('number')
-        cliente = data[contagent].get('client')
-        if agente != agenteant:
-            sheet['A'+str(contador)] = nombre
-            sheet['B'+str(contador)] = correo
-            sheet['C'+str(contador)] = telefono
-            sheet['D'+str(contador)] = cliente
-        else:
-            sheet['D'+str(contador)] = cliente
-        agenteant = agente
+        clave = data[contaprod].get('nom_corto')
+        descripcion = data[contaprod].get('descripcion')
+        nombre = data[contaprod].get('nombre')
+        sheet['A'+str(contador)] = clave
+        sheet['B'+str(contador)] = descripcion
+        sheet['C'+str(contador)] = nombre
         contador += 1 
-        contagent += 1
+        contaprod += 1
     wb.save(archivoe) 
     crearPdf(archivoe, archivo)       
 
