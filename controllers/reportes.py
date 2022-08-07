@@ -7,17 +7,16 @@ import pythoncom
 import winshell
 from datetime import date
 
+escritorio = winshell.desktop()
+hoy = date.today()
+hoyf = hoy.strftime("%d%m%Y")
+ruta = os.getcwd()
+data = get_agente()
 
-#import db
-
-def reportes():
-    hoy = date.today()
-    hoyf = hoy.strftime("%d%m%Y")
-    ruta = os.getcwd()
-    escritorio = winshell.desktop()
-    data = get_agente()
-    base = ruta+"\\reportes\\base\\ocatalogoAgentes.xlsx"
-    archivo = escritorio+"\\REPORTES\\catalogoAgentes-"+hoyf+".xlsx"
+def catalogoAgentes():
+    archivo = "catalogoAgentes"
+    base = ruta+"\\reportes\\base\\o"+archivo+".xlsx"
+    archivoe = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf+".xlsx"
     # Crear Excel
     wb = load_workbook(base)
     sheet = wb.active
@@ -40,16 +39,17 @@ def reportes():
         agenteant = agente
         contador += 1 
         contagent += 1
-    wb.save(archivo) 
-        
+    wb.save(archivoe) 
+    crearPdf(archivoe, archivo)    
 
     # Crear PDF
+def crearPdf(archivoe, archivo):
     try:
         pythoncom.CoInitialize()
         excel_file = win32com.client.Dispatch("Excel.Application")
-        xl_sheets = excel_file.Workbooks.Open(archivo)
+        xl_sheets = excel_file.Workbooks.Open(archivoe)
         worksheets = xl_sheets.Worksheets[0]
-        worksheets.ExportAsFixedFormat(0, escritorio+"\\REPORTES\\catalogoAgentes-"+hoyf+".pdf")
+        worksheets.ExportAsFixedFormat(0, escritorio+"\\REPORTES\\"+archivo+"-"+hoyf+".pdf")
         excel_file.quit()
     except Exception as inst:
         print("OS error: {0}".format(inst))
