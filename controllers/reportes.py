@@ -56,9 +56,11 @@ def catalogoProductos():
         clave = data[contaprod].get('nom_corto')
         descripcion = data[contaprod].get('descripcion')
         nombre = data[contaprod].get('nombre')
+        existencia = data[contaprod].get('existencia_real')
         sheet['A'+str(contador)] = clave
         sheet['B'+str(contador)] = descripcion
         sheet['C'+str(contador)] = nombre
+        sheet['D'+str(contador)] = existencia 
         contador += 1 
         contaprod += 1
     wb.save(archivoe) 

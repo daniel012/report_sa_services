@@ -88,11 +88,11 @@ def get_agente(correo=None):
     return data
 
 def get_productos():
-    instruccion = f"SELECT nom_corto,descripcion,nombre FROM producto"
+    instruccion = f"SELECT nom_corto,descripcion,nombre,existencia_real FROM producto"
     rows = executeQuery(instruccion)
     data =[]
     for row in rows:
-        data.append({'nom_corto':row[0],'descripcion':row[1],'nombre':row[2]})
+        data.append({'nom_corto':row[0],'descripcion':row[1],'nombre':row[2],'existencia_real':row[3]})
     return data
 
 def tablaAgente(sql, nombre, direccion, telefono, correo, id=None):
