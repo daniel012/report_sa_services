@@ -212,10 +212,10 @@ def create_app(test_config=None):
         catalogoProductos()
         return 'ok'
 
-    @app.route('/report/staticClient', methods= ['GET'])
+    @app.route('/report/staticClient/<idClient>', methods= ['GET'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
-    def report_estCliente():
-        estadisticasCliente()
+    def report_estCliente(idClient):
+        estadisticasCliente(idClient)
         return 'ok'
 
     return app
