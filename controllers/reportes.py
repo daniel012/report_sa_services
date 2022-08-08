@@ -1,7 +1,7 @@
 from openpyxl import load_workbook, Workbook
 import win32com.client
 #from win32com.client import Dispatch
-from .db import get_agente, get_productos
+from .db import get_agente, get_productos, get_estadisticaCliente
 import os
 import pythoncom
 import winshell
@@ -66,7 +66,54 @@ def catalogoProductos():
     wb.save(archivoe) 
     crearPdf(archivoe, archivo)       
 
-    # Crear PDF
+def estadisticasCliente():
+    data = get_estadisticaCliente(1)
+    archivo = "estadisticasCliente"
+    base = ruta+"\\reportes\\base\\o"+archivo+".xlsx"
+    archivoe = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf+".xlsx"
+    # Crear Excel
+    wb = load_workbook(base)
+    sheet = wb.active
+    cliente = data.get('cliente')
+    agente = data.get('agente')
+    ventaInfo = data.get('datosVenta')
+    print(ventaInfo)
+    sheet['B'+str(3)] = cliente
+    sheet['H'+str(3)] = agente
+    contador = 6
+    conta = 0
+    ventaant = ""
+    for i in range(len(ventaInfo)):
+        vclave = ventaInfo[conta].get('vclave')
+        vfecha = ventaInfo[conta].get('vfecha')
+        vtotal = ventaInfo[conta].get('vtotal')
+        vpago = ventaInfo[conta].get('vpago')
+        pdescripcion = ventaInfo[conta].get('pdescripcion')
+        pclave = ventaInfo[conta].get('pclave')
+        pcantidad = ventaInfo[conta].get('pcantidad')
+        pprecio = ventaInfo[conta].get('pprecio')
+        if vclave != ventaant:
+            sheet['A'+str(contador)] = vclave 
+            sheet['B'+str(contador)] = vfecha 
+            sheet['C'+str(contador)] = vtotal
+            #sheet['D'+str(contador)] = vpago
+            #sheet['D'+str(contador)] = 
+            sheet['F'+str(contador)] = pdescripcion
+            sheet['G'+str(contador)] = pclave
+            sheet['H'+str(contador)] = pcantidad
+            sheet['I'+str(contador)] = pprecio
+        else:
+            sheet['F'+str(contador)] = pdescripcion
+            sheet['G'+str(contador)] = pclave
+            sheet['H'+str(contador)] = pcantidad
+            sheet['I'+str(contador)] = pprecio
+        ventaant = vclave
+        contador += 1 
+        conta += 1
+    wb.save(archivoe) 
+    crearPdf(archivoe, archivo)
+
+# Crear PDF
 def crearPdf(archivoe, archivo):
     try:
         pythoncom.CoInitialize()

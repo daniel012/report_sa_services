@@ -95,6 +95,18 @@ def get_productos():
         data.append({'nom_corto':row[0],'descripcion':row[1],'nombre':row[2],'existencia_real':row[3]})
     return data
 
+def get_estadisticaCliente(cliente):
+    instruccion = f"SELECT cliente.nombre, agente.nombre FROM cliente INNER JOIN agente ON cliente.idagente==agente.id WHERE cliente.id=={cliente} "
+    rows = executeQuery(instruccion)
+    if len(rows):
+        instruccion = f"SELECT venta.id, venta.fecha, venta.total, venta.monto_pago, producto.descripcion, producto.nom_corto, producto_venta.cantidad, producto_venta.precio FROM venta INNER JOIN producto_venta ON producto_venta.idventa==venta.id INNER JOIN producto ON producto.id==producto_venta.idproducto WHERE venta.idcliente=={cliente} "
+        dataVenta = executeQuery(instruccion)
+        listaVenta = [] 
+        for info in dataVenta:
+            listaVenta.append({'vclave':info[0],'vfecha':info[1],'vtotal':info[2],'vpago':info[3],'pdescripcion':info[4],'pclave':info[5],'pcantidad':info[6],'pprecio':info[7]})
+        data = {'cliente':rows[0][0],'agente':rows[0][1],'datosVenta':listaVenta}
+    return data
+
 def tablaAgente(sql, nombre, direccion, telefono, correo, id=None):
     # Stabilished a connection
     con = sqlite3.connect('msa.db')
