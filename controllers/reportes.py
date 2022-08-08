@@ -77,7 +77,6 @@ def estadisticasCliente(id):
     cliente = data.get('cliente')
     agente = data.get('agente')
     ventaInfo = data.get('datosVenta')
-    print(ventaInfo)
     sheet['B'+str(3)] = cliente
     sheet['H'+str(3)] = agente
     contador = 6
