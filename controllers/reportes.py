@@ -5,7 +5,7 @@ from .db import get_agente, get_productos, get_estadisticaCliente
 import os
 import pythoncom
 import winshell
-from datetime import date
+from datetime import date, datetime
 
 escritorio = winshell.desktop()
 hoy = date.today()
@@ -91,12 +91,18 @@ def estadisticasCliente():
         pclave = ventaInfo[conta].get('pclave')
         pcantidad = ventaInfo[conta].get('pcantidad')
         pprecio = ventaInfo[conta].get('pprecio')
+        pagopen = vtotal - vpago
+        d0 = datetime.strptime(vfecha, "%Y-%m-%d")
+        d1 = datetime.strptime(hoyf, "%d%m%Y")
+        dvencidos = (d1 - d0).days
+        if dvencidos < 30 : 
+            dvencidos = 0
         if vclave != ventaant:
             sheet['A'+str(contador)] = vclave 
             sheet['B'+str(contador)] = vfecha 
             sheet['C'+str(contador)] = vtotal
-            #sheet['D'+str(contador)] = vpago
-            #sheet['D'+str(contador)] = 
+            sheet['D'+str(contador)] = pagopen
+            sheet['E'+str(contador)] = dvencidos
             sheet['F'+str(contador)] = pdescripcion
             sheet['G'+str(contador)] = pclave
             sheet['H'+str(contador)] = pcantidad
