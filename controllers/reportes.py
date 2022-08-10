@@ -1,7 +1,7 @@
 from openpyxl import load_workbook, Workbook
 import win32com.client
 #from win32com.client import Dispatch
-from .db import get_agente, get_productos, get_estadisticaCliente
+from .db import get_agente, get_productos, get_estadisticaCliente, get_saldoCliente
 import os
 import pythoncom
 import winshell
@@ -97,6 +97,8 @@ def estadisticasCliente():
         dvencidos = (d1 - d0).days
         if dvencidos < 30 : 
             dvencidos = 0
+        else : 
+            dvencidos = dvencidos - 30
         if vclave != ventaant:
             sheet['A'+str(contador)] = vclave 
             sheet['B'+str(contador)] = vfecha 
@@ -118,6 +120,59 @@ def estadisticasCliente():
     wb.save(archivoe) 
     crearPdf(archivoe, archivo)
 
+def saldosCliente():
+    data = get_saldoCliente()
+    print(data)
+    #archivo = "saldoDeudorCliente"
+    #base = ruta+"\\reportes\\base\\o"+archivo+".xlsx"
+    #archivoe = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf+".xlsx"
+    # Crear Excel
+'''   wb = load_workbook(base)
+    sheet = wb.active
+    cliente = data.get('cliente')
+    agente = data.get('agente')
+    ventaInfo = data.get('datosVenta')
+    sheet['B'+str(3)] = cliente
+    sheet['H'+str(3)] = agente
+    contador = 6
+    conta = 0
+    ventaant = ""
+    for i in range(len(ventaInfo)):
+        vclave = ventaInfo[conta].get('vclave')
+        vfecha = ventaInfo[conta].get('vfecha')
+        vtotal = ventaInfo[conta].get('vtotal')
+        vpago = ventaInfo[conta].get('vpago')
+        pdescripcion = ventaInfo[conta].get('pdescripcion')
+        pclave = ventaInfo[conta].get('pclave')
+        pcantidad = ventaInfo[conta].get('pcantidad')
+        pprecio = ventaInfo[conta].get('pprecio')
+        pagopen = vtotal - vpago
+        d0 = datetime.strptime(vfecha, "%Y-%m-%d")
+        d1 = datetime.strptime(hoyf, "%d%m%Y")
+        dvencidos = (d1 - d0).days
+        if dvencidos < 30 : 
+            dvencidos = 0
+        if vclave != ventaant:
+            sheet['A'+str(contador)] = vclave 
+            sheet['B'+str(contador)] = vfecha 
+            sheet['C'+str(contador)] = vtotal
+            sheet['D'+str(contador)] = pagopen
+            sheet['E'+str(contador)] = dvencidos
+            sheet['F'+str(contador)] = pdescripcion
+            sheet['G'+str(contador)] = pclave
+            sheet['H'+str(contador)] = pcantidad
+            sheet['I'+str(contador)] = pprecio
+        else:
+            sheet['F'+str(contador)] = pdescripcion
+            sheet['G'+str(contador)] = pclave
+            sheet['H'+str(contador)] = pcantidad
+            sheet['I'+str(contador)] = pprecio
+        ventaant = vclave
+        contador += 1 
+        conta += 1
+    wb.save(archivoe) 
+    crearPdf(archivoe, archivo)'''
+
 # Crear PDF
 def crearPdf(archivoe, archivo):
     try:
@@ -132,3 +187,4 @@ def crearPdf(archivoe, archivo):
     return
 
 # reportes()
+saldosCliente()

@@ -107,6 +107,14 @@ def get_estadisticaCliente(cliente):
         data = {'cliente':rows[0][0],'agente':rows[0][1],'datosVenta':listaVenta}
     return data
 
+def get_saldoCliente(cliente):
+    instruccion = f"SELECT id,idcliente,fecha,monto_pago,total FROM venta"
+    rows = executeQuery(instruccion)
+    data =[]
+    for row in rows:
+        data.append({'idVenta':row[0],'idcliente':row[1],'fecha':row[2],'montoPagado':row[3], 'totalPagar':row[4]})
+    return data
+
 def tablaAgente(sql, nombre, direccion, telefono, correo, id=None):
     # Stabilished a connection
     con = sqlite3.connect('msa.db')
@@ -125,7 +133,6 @@ def tablaAgente(sql, nombre, direccion, telefono, correo, id=None):
     # We can also close the connection if we are done with it.
     con.close()
     return id
-
 
 def tablaCliente(sql, idagente, nombre, rfc, telefono, correo, id=None):
     # Stabilished a connection
@@ -199,7 +206,6 @@ def actualizar_producto_existencia(id, existencia):
     # We can also close the connection if we are done with it.
     con.close()
     return id
-
 
 def tablaProductoVenta(sql, idproducto, idventa, cantidad, costo):
     # Stabilished a connection
