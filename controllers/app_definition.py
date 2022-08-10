@@ -127,8 +127,9 @@ def create_app(test_config=None):
         else:
             payment = round(float(payment), 2)
         idVenta = creatVenta(jsonValue.get('client'),jsonValue.get('date'),payment,jsonValue.get('total'),jsonValue.get('invoice'), jsonValue.get('delivered'))
+        idPago = -1
         if payment != 0:
-            insertarHistorialPago(idVenta, date.today(), payment ,jsonValue.get('paymentType'))
+            idPago = insertarHistorialPago(idVenta, date.today(), payment ,jsonValue.get('paymentType'))
         if idVenta != -1:
             for i in jsonValue.get('list'):
                 # registra el precio y la cantidad por producto
@@ -137,7 +138,7 @@ def create_app(test_config=None):
                 actualizar_producto_existencia(i.get('id'),i.get('newAmount'))
                 # ingresa el egreso de un producto en su bitacora 
                 insertProductHistory(i.get('id'), jsonValue.get('date'), i.get('amount'), 0, idVenta)
-            return str(idVenta), 201
+            return {'venta':idVenta,'pago':idPago}, 201
         else: 
             return 'FACTURA_REPETIDA', 409
 
@@ -153,10 +154,10 @@ def create_app(test_config=None):
             for row in listProducts:
                 products.append({'amount':row[0],'unitPrice':row[1], 'product': row[2], 'code': row[3]})
 
-            paymentInfo = executeQuery(f"SELECT historial_pagos.fecha, historial_pagos.monto, historial_pagos.forma_pago  FROM historial_pagos INNER JOIN venta on historial_pagos.idventa = venta.id where idventa == '{id}'")
+            paymentInfo = executeQuery(f"SELECT historial_pagos.fecha, historial_pagos.monto, historial_pagos.forma_pago,  historial_pagos.id FROM historial_pagos INNER JOIN venta on historial_pagos.idventa = venta.id where idventa == '{id}'")
             paymentDictionary = []
             for i in paymentInfo:
-                paymentDictionary.append({'amount':i[1], 'date':i[0], 'paymentType':i[2]})
+                paymentDictionary.append({'amount':i[1], 'date':i[0], 'paymentType':i[2],'id':i[3]})
             row = rows[0]
             data.append({'id':row[0],'date':row[1],'payment':row[2],'total':row[3],'delivered': row[4], 'invoice':row[5], 'list': products, 'clientName':row[6], 'agent':row[7], 'paymentHistory': paymentDictionary})
 
