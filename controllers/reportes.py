@@ -66,8 +66,8 @@ def catalogoProductos():
     wb.save(archivoe) 
     crearPdf(archivoe, archivo)       
 
-def estadisticasCliente():
-    data = get_estadisticaCliente(1)
+def estadisticasCliente(id):
+    data = get_estadisticaCliente(id)
     archivo = "estadisticasCliente"
     base = ruta+"\\reportes\\base\\o"+archivo+".xlsx"
     archivoe = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf+".xlsx"
