@@ -1,13 +1,13 @@
+from pkgutil import get_data
 from pydoc import cli
 from openpyxl import load_workbook, Workbook
 import win32com.client
 #from win32com.client import Dispatch
-from .db import get_agente, get_productos, get_estadisticaCliente, get_saldoCliente
-#, get_saldoCliente
+from .db import get_agente, get_productos, get_estadisticaCliente, get_saldoCliente, get_compPago
 import os
 import pythoncom
 import winshell
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 escritorio = winshell.desktop()
 hoy = date.today()
@@ -18,7 +18,8 @@ def catalogoAgentes():
     data = get_agente()
     archivo = "catalogoAgentes"
     base = ruta+"\\reportes\\base\\o"+archivo+".xlsx"
-    archivoe = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf+".xlsx"
+    archivor = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf
+    archivoe = archivor+".xlsx"
     # Crear Excel
     wb = load_workbook(base)
     sheet = wb.active
@@ -42,37 +43,37 @@ def catalogoAgentes():
         contador += 1 
         contagent += 1
     wb.save(archivoe) 
-    crearPdf(archivoe, archivo) 
+    crearPdf(archivor, archivo) 
 
 def catalogoProductos():
     data = get_productos()
     archivo = "catalogoProductos"
     base = ruta+"\\reportes\\base\\o"+archivo+".xlsx"
-    archivoe = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf+".xlsx"
+    archivor = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf
+    archivoe = archivor+".xlsx"
     # Crear Excel
     wb = load_workbook(base)
     sheet = wb.active
     contador = 5
-    contaprod = 0
     for i in range(len(data)):
-        clave = data[contaprod].get('nom_corto')
-        descripcion = data[contaprod].get('descripcion')
-        nombre = data[contaprod].get('nombre')
-        existencia = data[contaprod].get('existencia_real')
+        clave = data[i].get('nom_corto')
+        descripcion = data[i].get('descripcion')
+        nombre = data[i].get('nombre')
+        existencia = data[i].get('existencia_real')
         sheet['A'+str(contador)] = clave
         sheet['B'+str(contador)] = descripcion
         sheet['C'+str(contador)] = nombre
         sheet['D'+str(contador)] = existencia 
         contador += 1 
-        contaprod += 1
     wb.save(archivoe) 
-    crearPdf(archivoe, archivo)       
+    crearPdf(archivor, archivo)       
 
 def estadisticasCliente(id):
     data = get_estadisticaCliente(id)
     archivo = "estadisticasCliente"
     base = ruta+"\\reportes\\base\\o"+archivo+".xlsx"
-    archivoe = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf+".xlsx"
+    archivor = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf
+    archivoe = archivor+".xlsx"
     # Crear Excel
     wb = load_workbook(base)
     sheet = wb.active
@@ -120,7 +121,7 @@ def estadisticasCliente(id):
         contador += 1 
         conta += 1
     wb.save(archivoe) 
-    crearPdf(archivoe, archivo)
+    crearPdf(archivor, archivo)
 
 def saldosCliente():
     data = get_saldoCliente()
@@ -156,18 +157,50 @@ def saldosCliente():
     wb.save(archivoe) 
     crearPdf(archivoe, archivo)
 
+def comprobantePago(idVenta):
+    data = get_compPago(idVenta)
+    archivo = "comprobantePago"
+    base = ruta+"\\reportes\\base\\o"+archivo+".xlsx"
+    cliente = data.get('cliente')
+    agente = data.get('agente')
+    vfecha = data.get('vfecha')
+    vtotal = data.get('vtotal')
+    vpagado = data.get('vpagado')
+    historial = data.get('historial')
+    fecha = datetime.strptime(vfecha, "%Y-%m-%d")
+    flimite = fecha + timedelta(days=30)
+    # Crear Excel
+    archivor = escritorio+"\\REPORTES\\"+archivo+idVenta+"-"+hoyf
+    archivoe = archivor+".xlsx"
+    wb = load_workbook(base)
+    sheet = wb.active
+    sheet['B'+str(6)] = cliente
+    sheet['B'+str(7)] = agente
+    sheet['F'+str(6)] = idVenta
+    sheet['F'+str(7)] = fecha.strftime("%d/%m/%Y")
+    sheet['F'+str(8)] = flimite
+    sheet['F'+str(9)] = vtotal
+    sheet['F'+str(10)] = vpagado
+    filae = 13
+    for i in range(len(historial)):
+        fechap = historial[i].get('fecha')
+        fechaf = datetime.strptime(vfecha, "%Y-%m-%d")
+        montop = historial[i].get('monto')
+        sheet['A'+str(filae)] = fechaf.strftime("%d/%m/%Y")
+        sheet['B'+str(filae)] = montop
+        filae += 1
+    wb.save(archivoe) 
+    crearPdf(archivor, archivo)  
+
 # Crear PDF
-def crearPdf(archivoe, archivo):
+def crearPdf(archivor, archivo):
     try:
         pythoncom.CoInitialize()
         excel_file = win32com.client.Dispatch("Excel.Application")
-        xl_sheets = excel_file.Workbooks.Open(archivoe)
+        xl_sheets = excel_file.Workbooks.Open(archivor+".xlsx")
         worksheets = xl_sheets.Worksheets[0]
-        worksheets.ExportAsFixedFormat(0, escritorio+"\\REPORTES\\"+archivo+"-"+hoyf+".pdf")
+        worksheets.ExportAsFixedFormat(0, archivor+".pdf")
         excel_file.quit()
     except Exception as inst:
         print("OS error: {0}".format(inst))
     return
-
-# reportes()
-#saldosCliente()

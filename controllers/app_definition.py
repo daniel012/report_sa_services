@@ -5,7 +5,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 import os
 from .db import *
-from .reportes import catalogoAgentes, catalogoProductos, estadisticasCliente, saldosCliente
+from .reportes import catalogoAgentes, catalogoProductos, estadisticasCliente, saldosCliente, comprobantePago
 from configparser import SafeConfigParser
 from openpyxl import Workbook
 from datetime import date
@@ -223,6 +223,12 @@ def create_app(test_config=None):
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def report_saldosCliente():
         saldosCliente()
+        return 'ok'
+
+    @app.route('/report/payment/<idVenta>', methods= ['GET'])
+    @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
+    def report_payment(idVenta):
+        comprobantePago(idVenta)
         return 'ok'
 
     return app
