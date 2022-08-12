@@ -107,12 +107,12 @@ def get_estadisticaCliente(cliente):
         data = {'cliente':rows[0][0],'agente':rows[0][1],'datosVenta':listaVenta}
     return data
 
-def get_saldoCliente(cliente):
-    instruccion = f"SELECT id,idcliente,fecha,monto_pago,total FROM venta"
+def get_saldoCliente():
+    instruccion = f"SELECT venta.id,cliente.nombre,venta.fecha,venta.monto_pago,venta.total FROM venta INNER JOIN cliente ON cliente.id==venta.idcliente WHERE venta.total!=venta.monto_pago"
     rows = executeQuery(instruccion)
     data =[]
     for row in rows:
-        data.append({'idVenta':row[0],'idcliente':row[1],'fecha':row[2],'montoPagado':row[3], 'totalPagar':row[4]})
+        data.append({'idVenta':row[0],'cliente':row[1],'fecha':row[2],'montoPagado':row[3], 'totalPagar':row[4]})
     return data
 
 def tablaAgente(sql, nombre, direccion, telefono, correo, id=None):
