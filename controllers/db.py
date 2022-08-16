@@ -108,6 +108,20 @@ def get_compPago(idVenta):
 
     return data
 
+def get_compVenta(idVenta):
+    #instruccion = f"SELECT idproducto, cantidad, precio FROM producto_venta WHERE idventa == {idVenta}"
+    instruccion = f"SELECT producto_venta.idproducto, producto_venta.cantidad, producto_venta.precio, producto.descripcion FROM producto_venta INNER JOIN producto ON producto.id == producto_venta.idproducto WHERE idventa == {idVenta}"
+    rows = executeQuery(instruccion)
+    productos =[]
+    for row in rows:
+        productos.append({'idproducto':row[0],'cantidad':row[1],'precio':row[2],'descripcion':row[3]})
+
+    instruccion = f"SELECT cliente.nombre, agente.nombre, venta.fecha, venta.total FROM venta INNER JOIN cliente on venta.idcliente == cliente.id INNER JOIN agente ON agente.id = cliente.idagente WHERE venta.id == {idVenta}"
+    rows = executeQuery(instruccion)
+    data = {'cliente':rows[0][0],'agente':rows[0][1],'vfecha':rows[0][2],'vtotal':rows[0][3], 'productos': productos}
+
+    return data
+
 def get_estadisticaCliente(cliente):
     instruccion = f"SELECT cliente.nombre, agente.nombre FROM cliente INNER JOIN agente ON cliente.idagente==agente.id WHERE cliente.id=={cliente} "
     rows = executeQuery(instruccion)
