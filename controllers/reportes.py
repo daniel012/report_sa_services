@@ -126,8 +126,9 @@ def estadisticasCliente(id):
 def saldosCliente():
     data = get_saldoCliente()
     archivo = "saldoDeudorCliente"
+    archivor = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf
     base = ruta+"\\reportes\\base\\o"+archivo+".xlsx"
-    archivoe = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf+".xlsx"
+    archivoe = archivor+".xlsx"
     # Crear Excel
     wb = load_workbook(base)
     sheet = wb.active
@@ -155,7 +156,7 @@ def saldosCliente():
         sheet['G'+str(contador)] = dvencidos
         contador += 1 
     wb.save(archivoe) 
-    crearPdf(archivoe, archivo)
+    crearPdf(archivor, archivo)
 
 def comprobantePago(idVenta):
     data = get_compPago(idVenta)
