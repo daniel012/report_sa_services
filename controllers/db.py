@@ -289,4 +289,50 @@ def executeQuery(query):
     con.close()
     return rows
 
+def cierreDeVenta(startDate, endDate=None):
+    con = sqlite3.connect('msa.db')
+    cursor = con.cursor()
+    query = f"SELECT venta.factura, cliente.nombre, venta.id FROM venta INNER JOIN cliente on venta.idcliente == cliente.id "
+    clause = ''
+    if endDate is None:
+        clause = f"Where CAST( substr(venta.fecha,1,4)||substr(venta.fecha,6,2)||substr(venta.fecha,9,2) AS INT)  >= {startDate}"
+    else:
+        clause = f"Where CAST( substr(venta.fecha,1,4)||substr(venta.fecha,6,2)||substr(venta.fecha,9,2) AS INT)  BETWEEN {startDate} AND {endDate}"
+    
+    query = query + clause
+    cursor.execute(query)
+    rows = cursor.fetchall()
+    idsVenta= []
+    info = {}
+    for venta in rows:
+        idsVenta.append(f"{venta[2]}")
+        info[venta[2]] = {'ventaId':venta[2], 'ventaFactura':venta[0], 'ventaCliente':venta[1]}
+    idsVenta = ",".join(idsVenta)
+    query =f"SELECT producto_venta.idventa, producto_venta.precio, producto_venta.cantidad, producto.nom_corto, producto.nombre FROM producto_venta INNER JOIN producto ON producto.id == producto_venta.idproducto WHERE idventa IN ({idsVenta}) ORDER BY producto_venta.idventa"
+    cursor.execute(query)
+    rows = cursor.fetchall()
+    for producto in rows:
+        idVenta = producto[0]
+        listProduct = []
+        if('listProduct' in info[idVenta]):
+            listProduct = info[idVenta]['listProduct']
+        price = round(float(producto[2])*float(producto[1]),2)
+        listProduct.append({'price':price, 'code':producto[3], 'name': producto[4]})
+        info[idVenta]['listProduct'] = listProduct
+    
+    query = f"SELECT idventa, ROUND(SUM(monto),2) FROM historial_pagos WHERE idventa IN ({idsVenta}) GROUP BY idventa"
+
+    cursor.execute(query)
+    rows = cursor.fetchall()
+    for payment in rows:
+        info[payment[0]]['payment'] = payment[1]
+    
+    result = []
+    for row in info:
+        result.append(info[row])
+    # print(result)
+
+    con.close()
+    return rows
+
 #createDB()

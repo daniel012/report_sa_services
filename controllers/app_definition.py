@@ -1,3 +1,4 @@
+from __future__ import print_function
 import email
 from email.headerregistry import Address
 from xml.dom.minidom import Identified
@@ -229,6 +230,19 @@ def create_app(test_config=None):
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def report_payment(idVenta):
         comprobantePago(idVenta)
+        return 'ok'
+
+    @app.route('/report/endSell', methods= ['POST'])
+    @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
+    def report_endSell():
+        jsonValue = request.get_json()
+        startDate = jsonValue.get('startDate')
+        endDate = jsonValue.get('endDate')
+        startDateNum = startDate[0:4]+startDate[5:7]+startDate[8:10]
+        endDateNum = None
+        if endDate != '':
+            endDateNum = endDate[0:4]+endDate[5:7]+endDate[8:10]
+        cierreDeVenta(startDateNum, endDateNum)
         return 'ok'
 
     return app
