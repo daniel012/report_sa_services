@@ -334,12 +334,25 @@ def cierreDeVenta(startDate, endDate=None):
         listProduct.append({'price':price, 'code':producto[3], 'name': producto[4]})
         info[idVenta]['listProduct'] = listProduct
     
-    query = f"SELECT idventa, ROUND(SUM(monto),2) FROM historial_pagos WHERE idventa IN ({idsVenta}) GROUP BY idventa"
+    query = f"SELECT idventa, monto, forma_pago FROM historial_pagos WHERE idventa IN ({idsVenta}) "
 
     cursor.execute(query)
     rows = cursor.fetchall()
     for payment in rows:
-        info[payment[0]]['payment'] = payment[1]
+        listCounts = {}
+        if 'payment' in info[payment[0]]:
+            listCounts = info[payment[0]]['payment']
+        if payment[2] == 'True':
+            key = 'cash'
+        else:
+            key = 'credit'
+
+        if(key in listCounts):
+            listCounts[key] = round(listCounts[key] + float(payment[1]),2)
+        else:
+            listCounts[key] = round(float(payment[1]),2)
+        
+        info[payment[0]]['payment'] = listCounts
     
     result = []
     for row in info:
