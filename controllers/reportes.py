@@ -3,7 +3,7 @@ from pydoc import cli
 from openpyxl import load_workbook, Workbook
 import win32com.client
 #from win32com.client import Dispatch
-from .db import get_agente, get_productos, get_estadisticaCliente, get_saldoCliente, get_compPago, get_compVenta
+from .db import get_agente, get_productos, get_estadisticaCliente, get_saldoCliente, get_compPago, get_compVenta, cierreDeVenta
 import os
 import pythoncom
 import winshell
@@ -230,6 +230,49 @@ def comprobanteVenta(idVenta):
     wb.save(archivoe) 
     crearPdf(archivor, archivo)
 
+def reporteCierreVenta(startDate, endDate=None):
+    data = cierreDeVenta(startDate, endDate)
+    archivo = "cierreVenta"
+    archivor = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf
+    base = ruta+"\\reportes\\base\\o"+archivo+".xlsx"
+    archivoe = archivor+".xlsx"
+    # Crear Excel
+    wb = load_workbook(base)
+    sheet = wb.active    
+    filae = 6
+    ventaAnt = ""
+    finicio = datetime.strptime(startDate, "%Y%m%d")
+    ffin = datetime.strptime(endDate, "%Y%m%d")
+    sheet['H'+str(2)] = finicio.strftime("%d/%m/%Y")
+    sheet['I'+str(2)] = "-"+str(ffin.strftime("%d/%m/%Y"))
+    for i in range(len(data)):
+        fechav = datetime.strptime(data[i].get('date'), "%Y-%m-%d")
+        ventaId = data[i].get('ventaId')
+        ventaFactura = data[i].get('ventaFactura')
+        ventaCliente = data[i].get('ventaCliente')
+        listProduct = data[i].get('listProduct')
+
+        if ventaFactura == "" :
+            tipo = "Remision"
+        else:
+            tipo = "Factura"
+        sheet['A'+str(filae)] = fechav.strftime("%d/%m/%Y")
+        sheet['B'+str(filae)] = tipo
+        sheet['D'+str(filae)] = ventaCliente
+        sheet['E'+str(filae)] = ventaId
+        for producto in range(len(listProduct)):
+            pclave = listProduct[producto].get("code")
+            pdescripcion = listProduct[producto].get("name")
+            cantidad = listProduct[producto].get("amount")
+            pprecio = listProduct[producto].get("price")
+            sheet['F'+str(filae)] = pclave
+            sheet['G'+str(filae)] = pdescripcion
+            sheet['H'+str(filae)] = cantidad
+            sheet['I'+str(filae)] = pprecio
+            filae += 1
+    wb.save(archivoe) 
+    crearPdf(archivor, archivo)
+
 # Crear PDF
 def crearPdf(archivor, archivo):
     try:
@@ -242,5 +285,3 @@ def crearPdf(archivor, archivo):
     except Exception as inst:
         print("OS error: {0}".format(inst))
     return
-
-comprobanteVenta(1)

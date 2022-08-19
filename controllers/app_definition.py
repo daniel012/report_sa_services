@@ -6,7 +6,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 import os
 from .db import *
-from .reportes import catalogoAgentes, catalogoProductos, estadisticasCliente, saldosCliente, comprobantePago, comprobanteVenta
+from .reportes import catalogoAgentes, catalogoProductos, estadisticasCliente, saldosCliente, comprobantePago, comprobanteVenta, reporteCierreVenta
 from configparser import SafeConfigParser
 from openpyxl import Workbook
 from datetime import date
@@ -248,7 +248,7 @@ def create_app(test_config=None):
         endDateNum = None
         if endDate != '':
             endDateNum = endDate[0:4]+endDate[5:7]+endDate[8:10]
-        cierreDeVenta(startDateNum, endDateNum)
+        reporteCierreVenta(startDateNum, endDateNum)
         return 'ok'
 
     return app
