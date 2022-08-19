@@ -240,7 +240,6 @@ def reporteCierreVenta(startDate, endDate=None):
     wb = load_workbook(base)
     sheet = wb.active    
     filae = 6
-    ventaAnt = ""
     finicio = datetime.strptime(startDate, "%Y%m%d")
     ffin = datetime.strptime(endDate, "%Y%m%d")
     sheet['H'+str(2)] = finicio.strftime("%d/%m/%Y")
@@ -250,14 +249,20 @@ def reporteCierreVenta(startDate, endDate=None):
         ventaId = data[i].get('ventaId')
         ventaFactura = data[i].get('ventaFactura')
         ventaCliente = data[i].get('ventaCliente')
+        ventaTotal = data[i].get('total')
+        pagado = data[i].get('pagado')
+        if pagado < ventaTotal:
+            credito = "Si"
+        else:
+            credito = "No"
         listProduct = data[i].get('listProduct')
-
         if ventaFactura == "" :
             tipo = "Remision"
         else:
             tipo = "Factura"
         sheet['A'+str(filae)] = fechav.strftime("%d/%m/%Y")
         sheet['B'+str(filae)] = tipo
+        sheet['C'+str(filae)] = credito
         sheet['D'+str(filae)] = ventaCliente
         sheet['E'+str(filae)] = ventaId
         for producto in range(len(listProduct)):
@@ -270,6 +275,8 @@ def reporteCierreVenta(startDate, endDate=None):
             sheet['H'+str(filae)] = cantidad
             sheet['I'+str(filae)] = pprecio
             filae += 1
+        sheet['J'+str(filae)] = ventaTotal
+        filae += 2
     wb.save(archivoe) 
     crearPdf(archivor, archivo)
 
