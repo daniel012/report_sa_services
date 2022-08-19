@@ -3,7 +3,7 @@ from pydoc import cli
 from openpyxl import load_workbook, Workbook
 import win32com.client
 #from win32com.client import Dispatch
-from .db import get_agente, get_productos, get_estadisticaCliente, get_saldoCliente, get_compPago, get_compVenta
+from .db import get_agente, get_productos, get_estadisticaCliente, get_saldoCliente, get_compPago, get_compVenta, cierreDeVenta
 import os
 import pythoncom
 import winshell
@@ -230,6 +230,43 @@ def comprobanteVenta(idVenta):
     wb.save(archivoe) 
     crearPdf(archivor, archivo)
 
+def reporteCierreVenta(startDate, endDate=None):
+    data = cierreDeVenta(startDate, endDate)
+    print(data)
+    archivo = "cierreVenta"
+    archivor = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf
+    base = ruta+"\\reportes\\base\\o"+archivo+".xlsx"
+    archivoe = archivor+".xlsx"
+    # Crear Excel
+    wb = load_workbook(base)
+    sheet = wb.active    
+    filae = 5
+    ventaAnt = ""
+    for i in range(len(data)):
+        ventaId = data[i].get('ventaId')
+        ventaFactura = data[i].get('ventaFactura')
+        ventaCliente = data[i].get('ventaCliente')
+        listProduct = data[i].get('listProduct')
+        if ventaFactura == "" :
+            tipo = "Remision"
+        else:
+            tipo = "Factura"
+        if ventaId != ventaAnt:
+            sheet['A'+str(filae)] = tipo
+            sheet['B'+str(filae)] = ventaCliente
+            sheet['C'+str(filae)] = ventaId
+        else:
+            for datos in range(len(listProduct[i])):
+                pclave = listProduct[i].get("code")
+                pdescripcion = listProduct[i].get("name")
+                sheet['D'+str(filae)] = pdescripcion
+                sheet['D'+str(filae)] = pclave
+        ventaAnt = ventaId
+
+        filae += 1
+    wb.save(archivoe) 
+    crearPdf(archivor, archivo)
+
 # Crear PDF
 def crearPdf(archivor, archivo):
     try:
@@ -242,5 +279,3 @@ def crearPdf(archivor, archivo):
     except Exception as inst:
         print("OS error: {0}".format(inst))
     return
-
-comprobanteVenta(1)

@@ -357,9 +357,9 @@ def cierreDeVenta(startDate, endDate=None):
     result = []
     for row in info:
         result.append(info[row])
-    # print(result)
+    #print(result)
 
     con.close()
-    return rows
+    return result
 
 #createDB()
