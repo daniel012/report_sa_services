@@ -239,33 +239,37 @@ def reporteCierreVenta(startDate, endDate=None):
     # Crear Excel
     wb = load_workbook(base)
     sheet = wb.active    
-    filae = 5
+    filae = 6
     ventaAnt = ""
     finicio = datetime.strptime(startDate, "%Y%m%d")
     ffin = datetime.strptime(endDate, "%Y%m%d")
     sheet['H'+str(2)] = finicio.strftime("%d/%m/%Y")
     sheet['I'+str(2)] = "-"+str(ffin.strftime("%d/%m/%Y"))
     for i in range(len(data)):
+        fechav = datetime.strptime(data[i].get('date'), "%Y-%m-%d")
         ventaId = data[i].get('ventaId')
         ventaFactura = data[i].get('ventaFactura')
         ventaCliente = data[i].get('ventaCliente')
         listProduct = data[i].get('listProduct')
+
         if ventaFactura == "" :
             tipo = "Remision"
         else:
             tipo = "Factura"
-        if ventaId != ventaAnt:
-            sheet['A'+str(filae)] = tipo
-            sheet['C'+str(filae)] = ventaCliente
-            sheet['D'+str(filae)] = ventaId
-        else:
-            pclave = listProduct[i].get("code")
-            pdescripcion = listProduct[i].get("name")
-            sheet['E'+str(filae)] = pclave
-            sheet['F'+str(filae)] = pdescripcion
-        ventaAnt = ventaId
-
-        filae += 1
+        sheet['A'+str(filae)] = fechav.strftime("%d/%m/%Y")
+        sheet['B'+str(filae)] = tipo
+        sheet['D'+str(filae)] = ventaCliente
+        sheet['E'+str(filae)] = ventaId
+        for producto in range(len(listProduct)):
+            pclave = listProduct[producto].get("code")
+            pdescripcion = listProduct[producto].get("name")
+            cantidad = listProduct[producto].get("amount")
+            pprecio = listProduct[producto].get("price")
+            sheet['F'+str(filae)] = pclave
+            sheet['G'+str(filae)] = pdescripcion
+            sheet['H'+str(filae)] = cantidad
+            sheet['I'+str(filae)] = pprecio
+            filae += 1
     wb.save(archivoe) 
     crearPdf(archivor, archivo)
 
