@@ -331,7 +331,7 @@ def cierreDeVenta(startDate, endDate=None):
         if('listProduct' in info[idVenta]):
             listProduct = info[idVenta]['listProduct']
         price = round(float(producto[2])*float(producto[1]),2)
-        listProduct.append({'price':price, 'code':producto[3], 'name': producto[4]})
+        listProduct.append({'price':price, 'code':producto[3], 'name': producto[4], 'amount': producto[2]})
         info[idVenta]['listProduct'] = listProduct
     
     query = f"SELECT idventa, monto, forma_pago FROM historial_pagos WHERE idventa IN ({idsVenta}) "
