@@ -306,7 +306,7 @@ def executeQuery(query):
 def cierreDeVenta(startDate, endDate=None):
     con = sqlite3.connect('msa.db')
     cursor = con.cursor()
-    query = f"SELECT venta.factura, cliente.nombre, venta.id, venta.fecha FROM venta INNER JOIN cliente on venta.idcliente == cliente.id "
+    query = f"SELECT venta.factura, cliente.nombre, venta.id, venta.fecha, venta.total FROM venta INNER JOIN cliente on venta.idcliente == cliente.id "
     clause = ''
     if endDate is None:
         clause = f"Where CAST( substr(venta.fecha,1,4)||substr(venta.fecha,6,2)||substr(venta.fecha,9,2) AS INT)  >= {startDate}"
@@ -320,7 +320,7 @@ def cierreDeVenta(startDate, endDate=None):
     info = {}
     for venta in rows:
         idsVenta.append(f"{venta[2]}")
-        info[venta[2]] = {'ventaId':venta[2], 'ventaFactura':venta[0], 'ventaCliente':venta[1],'date':venta[3]}
+        info[venta[2]] = {'ventaId':venta[2], 'ventaFactura':venta[0], 'ventaCliente':venta[1],'date':venta[3],'total':venta[4]}
     idsVenta = ",".join(idsVenta)
     query =f"SELECT producto_venta.idventa, producto_venta.precio, producto_venta.cantidad, producto.nom_corto, producto.nombre FROM producto_venta INNER JOIN producto ON producto.id == producto_venta.idproducto WHERE idventa IN ({idsVenta}) ORDER BY producto_venta.idventa"
     cursor.execute(query)
