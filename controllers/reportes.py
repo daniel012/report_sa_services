@@ -232,7 +232,6 @@ def comprobanteVenta(idVenta):
 
 def reporteCierreVenta(startDate, endDate=None):
     data = cierreDeVenta(startDate, endDate)
-    print(data)
     archivo = "cierreVenta"
     archivor = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf
     base = ruta+"\\reportes\\base\\o"+archivo+".xlsx"
@@ -242,6 +241,10 @@ def reporteCierreVenta(startDate, endDate=None):
     sheet = wb.active    
     filae = 5
     ventaAnt = ""
+    finicio = datetime.strptime(startDate, "%Y%m%d")
+    ffin = datetime.strptime(endDate, "%Y%m%d")
+    sheet['H'+str(2)] = finicio.strftime("%d/%m/%Y")
+    sheet['I'+str(2)] = "-"+str(ffin.strftime("%d/%m/%Y"))
     for i in range(len(data)):
         ventaId = data[i].get('ventaId')
         ventaFactura = data[i].get('ventaFactura')
@@ -253,14 +256,13 @@ def reporteCierreVenta(startDate, endDate=None):
             tipo = "Factura"
         if ventaId != ventaAnt:
             sheet['A'+str(filae)] = tipo
-            sheet['B'+str(filae)] = ventaCliente
-            sheet['C'+str(filae)] = ventaId
+            sheet['C'+str(filae)] = ventaCliente
+            sheet['D'+str(filae)] = ventaId
         else:
-            for datos in range(len(listProduct[i])):
-                pclave = listProduct[i].get("code")
-                pdescripcion = listProduct[i].get("name")
-                sheet['D'+str(filae)] = pdescripcion
-                sheet['D'+str(filae)] = pclave
+            pclave = listProduct[i].get("code")
+            pdescripcion = listProduct[i].get("name")
+            sheet['E'+str(filae)] = pclave
+            sheet['F'+str(filae)] = pdescripcion
         ventaAnt = ventaId
 
         filae += 1
