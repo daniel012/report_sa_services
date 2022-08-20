@@ -2,7 +2,7 @@ import sqlite3
 
 def createDB():
     # Stabilished a connection
-    con = sqlite3.connect('C:\\Users\\uemar\\Desktop\\calera\\report_sa_services\\msa.db')
+    # con = sqlite3.connect('C:\\Users\\uemar\\Desktop\\calera\\report_sa_services\\msa.db')
     # Create a cursor objet
     cur = con.cursor()
 
@@ -89,11 +89,11 @@ def get_agente(correo=None):
     return data
 
 def get_productos():
-    instruccion = f"SELECT nom_corto,descripcion,nombre,existencia_real FROM producto"
+    instruccion = f"SELECT nom_corto,descripcion,nombre,existencia_real, umedida FROM producto"
     rows = executeQuery(instruccion)
     data =[]
     for row in rows:
-        data.append({'nom_corto':row[0],'descripcion':row[1],'nombre':row[2],'existencia_real':row[3]})
+        data.append({'nom_corto':row[0],'descripcion':row[1],'nombre':row[2],'existencia_real':f'{row[3]} {row[4]}'})
     return data
 
 def get_compPago(idVenta):
@@ -127,11 +127,11 @@ def get_estadisticaCliente(cliente):
     instruccion = f"SELECT cliente.nombre, agente.nombre FROM cliente INNER JOIN agente ON cliente.idagente==agente.id WHERE cliente.id=={cliente} "
     rows = executeQuery(instruccion)
     if len(rows):
-        instruccion = f"SELECT venta.id, venta.fecha, venta.total, venta.monto_pago, producto.descripcion, producto.nom_corto, producto_venta.cantidad, producto_venta.precio FROM venta INNER JOIN producto_venta ON producto_venta.idventa==venta.id INNER JOIN producto ON producto.id==producto_venta.idproducto WHERE venta.idcliente=={cliente} "
+        instruccion = f"SELECT venta.id, venta.fecha, venta.total, venta.monto_pago, producto.descripcion, producto.nom_corto, producto_venta.cantidad, producto_venta.precio, producto.umedida FROM venta INNER JOIN producto_venta ON producto_venta.idventa==venta.id INNER JOIN producto ON producto.id==producto_venta.idproducto WHERE venta.idcliente=={cliente} "
         dataVenta = executeQuery(instruccion)
         listaVenta = [] 
         for info in dataVenta:
-            listaVenta.append({'vclave':info[0],'vfecha':info[1],'vtotal':info[2],'vpago':info[3],'pdescripcion':info[4],'pclave':info[5],'pcantidad':info[6],'pprecio':info[7]})
+            listaVenta.append({'vclave':info[0],'vfecha':info[1],'vtotal':info[2],'vpago':info[3],'pdescripcion':info[4],'pclave':info[5],'pcantidad':f'{info[6]} {info[8]}','pprecio':info[7]})
         data = {'cliente':rows[0][0],'agente':rows[0][1],'datosVenta':listaVenta}
     return data
 
@@ -197,7 +197,7 @@ def tablaCompras(sql, idproducto, empresa, cantidad, costo):
     # We can also close the connection if we are done with it.
     con.close()
 
-def tablaProducto(sql, nombre, descripcion, existencia, existencia_real, code, fecha, precio_sugerido, id=None, isIngreso= None, difference=None):
+def tablaProducto(sql, nombre, descripcion, existencia, existencia_real, code, fecha, precio_sugerido, umedida, id=None, isIngreso= None, difference=None):
     # Stabilished a connection
     con = sqlite3.connect('msa.db')
     # Create a cursor objet
@@ -205,13 +205,13 @@ def tablaProducto(sql, nombre, descripcion, existencia, existencia_real, code, f
 
     if sql == "INSERTAR":
 
-        instruction = f"INSERT INTO producto (nombre, descripcion, existencia, existencia_real, nom_corto, precio_sugerido) VALUES ('{nombre}', '{descripcion}', '{existencia}', '{existencia_real}', '{code}', '{precio_sugerido}')" 
+        instruction = f"INSERT INTO producto (nombre, descripcion, existencia, existencia_real, nom_corto, precio_sugerido, umedida) VALUES ('{nombre}', '{descripcion}', '{existencia}', '{existencia_real}', '{code}', '{precio_sugerido}', '{umedida}')" 
         cur.execute(instruction)
         id = cur.lastrowid
         instruction = f"INSERT INTO producto_bitacora (idproducto, fecha, cantidad, ingreso) VALUES ('{id}', '{fecha}', '{existencia}', '{1}')" 
         cur.execute(instruction)
     elif sql == "ACTUALIZAR":
-        instruction = f"UPDATE producto SET nombre = '{nombre}' , descripcion = '{descripcion}' , existencia = '{existencia}', existencia_real = '{existencia_real}', nom_corto = '{code}' , precio_sugerido = '{precio_sugerido}' WHERE id = '{id}' " 
+        instruction = f"UPDATE producto SET nombre = '{nombre}' , descripcion = '{descripcion}' , existencia = '{existencia}', existencia_real = '{existencia_real}', nom_corto = '{code}' , precio_sugerido = '{precio_sugerido}' , umedida= '{umedida}' WHERE id = '{id}' " 
         cur.execute(instruction)
         if id is not None and isIngreso is not None and difference is not None and fecha is not None:
             instruction = f"INSERT INTO producto_bitacora (idproducto, fecha, cantidad, ingreso) VALUES ('{id}', '{fecha}', '{difference}', '{isIngreso}')"
@@ -323,7 +323,7 @@ def cierreDeVenta(startDate, endDate=None):
         idsVenta.append(f"{venta[2]}")
         info[venta[2]] = {'ventaId':venta[2], 'ventaFactura':venta[0], 'ventaCliente':venta[1],'date':venta[3],'total':venta[4], 'pagado':venta[5]}
     idsVenta = ",".join(idsVenta)
-    query =f"SELECT producto_venta.idventa, producto_venta.precio, producto_venta.cantidad, producto.nom_corto, producto.nombre FROM producto_venta INNER JOIN producto ON producto.id == producto_venta.idproducto WHERE idventa IN ({idsVenta}) ORDER BY producto_venta.idventa"
+    query =f"SELECT producto_venta.idventa, producto_venta.precio, producto_venta.cantidad, producto.nom_corto, producto.nombre, producto.umedida FROM producto_venta INNER JOIN producto ON producto.id == producto_venta.idproducto WHERE idventa IN ({idsVenta}) ORDER BY producto_venta.idventa"
     cursor.execute(query)
     rows = cursor.fetchall()
     for producto in rows:
@@ -332,7 +332,7 @@ def cierreDeVenta(startDate, endDate=None):
         if('listProduct' in info[idVenta]):
             listProduct = info[idVenta]['listProduct']
         price = round(float(producto[2])*float(producto[1]),2)
-        listProduct.append({'price':price, 'code':producto[3], 'name': producto[4], 'amount': producto[2]})
+        listProduct.append({'price':price, 'code':producto[3], 'name': producto[4], 'amount': f"{producto[2]} {producto[5]}"})
         info[idVenta]['listProduct'] = listProduct
     
     query = f"SELECT idventa, monto, forma_pago FROM historial_pagos WHERE idventa IN ({idsVenta}) "
@@ -363,4 +363,4 @@ def cierreDeVenta(startDate, endDate=None):
     con.close()
     return result
 
-createDB()
+# createDB()

@@ -89,33 +89,36 @@ def create_app(test_config=None):
     @app.route('/product', methods= ['GET'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def get_all_data_product():
-        rows = executeQuery("SELECT id, nombre, descripcion, existencia, existencia_real, nom_corto, precio_sugerido FROM producto")
+        rows = executeQuery("SELECT id, nombre, descripcion, existencia, existencia_real, nom_corto, precio_sugerido,umedida FROM producto")
         data =[]
         for row in rows:
-            data.append({'id':row[0],'name':row[1],'description':row[2],'amount':row[3],'real_amount':row[4],'code': row[5], 'productPrice':row[6] })
+            data.append({'id':row[0],'name':row[1],'description':row[2],'amount':row[3],'real_amount':row[4],'code': row[5], 'productPrice':row[6], 'metric': row[7] })
         return jsonify(data), 200 if len(data) else 204
 
     @app.route('/product/<code>', methods= ['GET'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def get_data_product(code):
-        rows = executeQuery(f"SELECT id, nombre, descripcion, existencia, existencia_real, nom_corto, precio_sugerido FROM producto where nom_corto == '{code}'")
-        data =[]
-        for row in rows:
-            data.append({'id':row[0],'name':row[1],'description':row[2],'amount':row[3],'real_amount':row[4],'code': row[5], 'productPrice':row[6] })
-        return jsonify(data), 200 if len(data) else 204
+        rows = executeQuery(f"SELECT id, nombre, descripcion, existencia, existencia_real, nom_corto, precio_sugerido, umedida FROM producto where nom_corto == '{code}'")
+        if len(rows) == 0:
+            return '', 204
+        else:
+            id = rows[0][0]
+            infoSell = executeQuery(f"SELECT id FROM producto_venta where idproducto == '{id}'")
+            data = {'id':id,'name':rows[0][1],'description':rows[0][2],'amount':rows[0][3],'real_amount':rows[0][4],'code': rows[0][5], 'productPrice':rows[0][6], 'metric':rows[0][7],'hasSells': True if len(infoSell) else False }
+        return jsonify(data), 200
 
     @app.route('/product', methods= ['POST'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def insert_product():
         jsonValue = request.get_json()
-        idProduct = tablaProducto('INSERTAR',jsonValue.get('name'),jsonValue.get('description'),jsonValue.get('amount'),jsonValue.get('real_amount'),jsonValue.get('code'),jsonValue.get('fecha'), jsonValue.get('productPrice'))
+        idProduct = tablaProducto('INSERTAR',jsonValue.get('name'),jsonValue.get('description'),jsonValue.get('amount'),jsonValue.get('real_amount'),jsonValue.get('code'),jsonValue.get('fecha'), jsonValue.get('productPrice'), jsonValue.get('metric') )
         return str(idProduct), 201
 
     @app.route('/product/<id>', methods= ['PUT'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def update_product(id):
         jsonValue = request.get_json()
-        idProduct = tablaProducto('ACTUALIZAR',jsonValue.get('name'),jsonValue.get('description'),jsonValue.get('amount'),jsonValue.get('real_amount'),jsonValue.get('code'),jsonValue.get('fecha'), jsonValue.get('productPrice'),id,jsonValue.get('isIngreso'),jsonValue.get('difference'))
+        idProduct = tablaProducto('ACTUALIZAR',jsonValue.get('name'),jsonValue.get('description'),jsonValue.get('amount'),jsonValue.get('real_amount'),jsonValue.get('code'),jsonValue.get('fecha'), jsonValue.get('productPrice'),jsonValue.get('metric'),id,jsonValue.get('isIngreso'),jsonValue.get('difference'))
         return str(idProduct), 200
 
     @app.route('/sell', methods= ['POST'])
@@ -150,10 +153,10 @@ def create_app(test_config=None):
         if len(rows) != 0 :
             data =[]
             products = []
-            listProducts = executeQuery(f"SELECT producto_venta.cantidad, producto_venta.precio, producto.nombre,producto.nom_corto FROM producto_venta INNER JOIN producto on producto_venta.idproducto = producto.id where idventa == '{id}'")
+            listProducts = executeQuery(f"SELECT producto_venta.cantidad, producto_venta.precio, producto.nombre,producto.nom_corto, producto.umedida FROM producto_venta INNER JOIN producto on producto_venta.idproducto = producto.id where idventa == '{id}'")
 
             for row in listProducts:
-                products.append({'amount':row[0],'unitPrice':row[1], 'product': row[2], 'code': row[3]})
+                products.append({'amount':row[0],'unitPrice':row[1], 'product': row[2], 'code': row[3], 'metric': row[4]})
 
             paymentInfo = executeQuery(f"SELECT historial_pagos.fecha, historial_pagos.monto, historial_pagos.forma_pago,  historial_pagos.id FROM historial_pagos INNER JOIN venta on historial_pagos.idventa = venta.id where idventa == '{id}'")
             paymentDictionary = []

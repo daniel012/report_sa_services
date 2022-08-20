@@ -241,9 +241,9 @@ def reporteCierreVenta(startDate, endDate=None):
     sheet = wb.active    
     filae = 6
     finicio = datetime.strptime(startDate, "%Y%m%d")
-    ffin = datetime.strptime(endDate, "%Y%m%d")
+    ffin = datetime.strptime(endDate, "%Y%m%d") if endDate is not None else ''
     sheet['H'+str(2)] = finicio.strftime("%d/%m/%Y")
-    sheet['I'+str(2)] = "-"+str(ffin.strftime("%d/%m/%Y"))
+    sheet['I'+str(2)] = "-"+str(ffin.strftime("%d/%m/%Y")) if endDate is not None else ''
     for i in range(len(data)):
         fechav = datetime.strptime(data[i].get('date'), "%Y-%m-%d")
         ventaId = data[i].get('ventaId')
