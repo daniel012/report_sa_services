@@ -14,6 +14,7 @@ def createDB():
         descripcion TEXT,
         existencia INT,
         existencia_real INT,
+        umedida TEXT,
         precio_sugerido REAL)''')
 
     cur.execute('''CREATE TABLE compras (
@@ -362,4 +363,4 @@ def cierreDeVenta(startDate, endDate=None):
     con.close()
     return result
 
-#createDB()
+createDB()
