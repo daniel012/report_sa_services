@@ -136,11 +136,12 @@ def get_estadisticaCliente(cliente):
     return data
 
 def get_saldoCliente():
-    instruccion = f"SELECT venta.id,cliente.nombre,venta.fecha,venta.monto_pago,venta.total FROM venta INNER JOIN cliente ON cliente.id==venta.idcliente WHERE venta.total!=venta.monto_pago"
+    instruccion = f"SELECT venta.id,cliente.nombre,venta.fecha,venta.monto_pago,venta.total, agente.nombre,(venta.total - venta.monto_pago) FROM venta  INNER JOIN cliente ON cliente.id==venta.idcliente JOIN agente on agente.id == cliente.idagente WHERE venta.total!=venta.monto_pago ORDER BY agente.nombre, (venta.total - venta.monto_pago) DESC"
     rows = executeQuery(instruccion)
     data =[]
     for row in rows:
-        data.append({'idVenta':row[0],'cliente':row[1],'fecha':row[2],'montoPagado':row[3], 'totalPagar':row[4]})
+        data.append({'idVenta':row[0],'cliente':row[1],'fecha':row[2],'montoPagado':row[3], 'totalPagar':row[4], 'agente':row[5], 'deuda':row[6]})
+    # print(data)
     return data
 
 def tablaAgente(sql, nombre, direccion, telefono, correo, id=None):
