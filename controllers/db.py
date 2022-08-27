@@ -364,4 +364,4 @@ def cierreDeVenta(startDate, endDate=None):
     con.close()
     return result
 
-# createDB()
+createDB()
