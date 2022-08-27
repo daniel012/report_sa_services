@@ -2,7 +2,7 @@ import sqlite3
 
 def createDB():
     # Stabilished a connection
-    # con = sqlite3.connect('C:\\Users\\uemar\\Desktop\\calera\\report_sa_services\\msa.db')
+    con = sqlite3.connect('C:\\Users\\uemar\\Desktop\\calera\\report_sa_services\\msa.db')
     # Create a cursor objet
     cur = con.cursor()
 
@@ -364,4 +364,4 @@ def cierreDeVenta(startDate, endDate=None):
     con.close()
     return result
 
-createDB()
+#createDB()
