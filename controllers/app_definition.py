@@ -49,10 +49,10 @@ def create_app(test_config=None):
         idAgente = tablaAgente('ACTUALIZAR',jsonValue.get('name'),jsonValue.get('address'),jsonValue.get('phone'),jsonValue.get('email'),id)
         return str(idAgente), 200
 
-    @app.route('/client/<correo>', methods= ['GET'])
+    @app.route('/client/<nombre>', methods= ['GET'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
-    def get_dataClient(correo):
-        rows = executeQuery("SELECT cliente.id,cliente.idagente,cliente.nombre,cliente.rfc,cliente.telefono,cliente.correo, agente.correo, agente.nombre FROM cliente INNER JOIN agente on cliente.idagente = agente.id where cliente.correo == \""+correo+"\"")
+    def get_dataClient(nombre):
+        rows = executeQuery("SELECT cliente.id,cliente.idagente,cliente.nombre,cliente.rfc,cliente.telefono,cliente.correo, agente.correo, agente.nombre FROM cliente INNER JOIN agente on cliente.idagente = agente.id where cliente.nombre == \""+nombre+"\"")
         data =[]
         for row in rows:
             data.append({'id':row[0],'nombre':row[2],'rfc':row[3],'telefono':row[4],'correo':row[5], 'agente':{'id':row[1],'email': row[6], 'name':row[7] }})
@@ -63,7 +63,7 @@ def create_app(test_config=None):
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def insertClient():
         clientJson = request.get_json();
-        rows = executeQuery("SELECT * FROM cliente where correo == \""+clientJson.get('correo')+"\"")
+        rows = executeQuery("SELECT * FROM cliente where nombre == \""+clientJson.get('nombre')+"\"")
         if((len(rows)) != 0):
             return  'clienteExiste' , 409
         else:

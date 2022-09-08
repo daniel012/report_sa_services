@@ -79,13 +79,13 @@ def createDB():
     con.close()
 
 def get_agente(correo=None):
-    instruccion = f"SELECT agente.id,agente.nombre,agente.direccion,agente.telefono,agente.correo,cliente.nombre FROM agente LEFT JOIN cliente ON agente.id==cliente.idagente"
+    instruccion = f"SELECT agente.id,agente.nombre,agente.direccion,agente.telefono,agente.correo,cliente.nombre, cliente.correo, cliente.telefono FROM agente LEFT JOIN cliente ON agente.id==cliente.idagente ORDER BY agente.nombre asc"
     if correo is not None:
         instruccion = instruccion + " where agente.correo == \""+correo+"\""
     rows = executeQuery(instruccion)
     data =[]
     for row in rows:
-        data.append({'id':row[0],'name':row[1],'address':row[2],'number':row[3],'email':row[4],'client':row[5]})
+        data.append({'id':row[0],'name':row[1],'address':row[2],'number':row[3],'email':row[4],'client':row[5],'clientEmail':row[6],'clientNumber':row[7]})
     return data
 
 def get_productos():
@@ -173,7 +173,7 @@ def tablaCliente(sql, idagente, nombre, rfc, telefono, correo, id=None):
         instruction = f"INSERT INTO cliente (idagente, nombre, rfc, telefono, correo) VALUES ({idagente}, '{nombre}', '{rfc}', '{telefono}', '{correo}' )" 
         id = cur.lastrowid
     elif sql == "ACTUALIZAR":
-        instruction = f"UPDATE cliente SET idagente = '{idagente}' , nombre = '{nombre}' , rfc = '{rfc}', telefono = '{telefono}' WHERE id = '{id}' "
+        instruction = f"UPDATE cliente SET idagente = '{idagente}' , nombre = '{nombre}' , rfc = '{rfc}', telefono = '{telefono}', correo='{correo}' WHERE id = '{id}' "
 
     cur.execute(instruction)
     id = cur.lastrowid
