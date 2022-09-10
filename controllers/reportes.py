@@ -32,13 +32,19 @@ def catalogoAgentes():
         correo = data[contagent].get('email')
         telefono = data[contagent].get('number')
         cliente = data[contagent].get('client')
+        clientEmail = data[contagent].get('clientEmail')
+        clientNumber = data[contagent].get('clientNumber')
         if agente != agenteant:
             sheet['A'+str(contador)] = nombre
             sheet['B'+str(contador)] = correo
             sheet['C'+str(contador)] = telefono
             sheet['D'+str(contador)] = cliente
+            sheet['E'+str(contador)] = clientEmail
+            sheet['F'+str(contador)] = clientNumber
         else:
             sheet['D'+str(contador)] = cliente
+            sheet['E'+str(contador)] = clientEmail
+            sheet['F'+str(contador)] = clientNumber
         agenteant = agente
         contador += 1 
         contagent += 1
