@@ -170,7 +170,7 @@ def tablaCliente(sql, idagente, nombre, rfc, telefono, correo, id=None):
     cur = con.cursor()
 
     if sql == "INSERTAR":
-        instruction = f"INSERT INTO cliente (idagente, nombre, rfc, telefono, correo) VALUES ({idagente}, '{nombre}', '{rfc}', '{telefono}', '{correo}' )" 
+        instruction = f"INSERT INTO cliente (idagente, nombre, rfc, telefono, correo) VALUES ({idagente}, '{(nombre.rstrip())}', '{rfc}', '{telefono}', '{correo}' )" 
         id = cur.lastrowid
     elif sql == "ACTUALIZAR":
         instruction = f"UPDATE cliente SET idagente = '{idagente}' , nombre = '{nombre}' , rfc = '{rfc}', telefono = '{telefono}', correo='{correo}' WHERE id = '{id}' "
@@ -206,7 +206,7 @@ def tablaProducto(sql, nombre, descripcion, existencia, existencia_real, code, f
 
     if sql == "INSERTAR":
 
-        instruction = f"INSERT INTO producto (nombre, descripcion, existencia, existencia_real, nom_corto, precio_sugerido, umedida) VALUES ('{nombre}', '{descripcion}', '{existencia}', '{existencia_real}', '{code}', '{precio_sugerido}', '{umedida}')" 
+        instruction = f"INSERT INTO producto (nombre, descripcion, existencia, existencia_real, nom_corto, precio_sugerido, umedida) VALUES ('{nombre}', '{descripcion}', '{existencia}', '{existencia_real}', '{(code.rstrip())}', '{precio_sugerido}', '{umedida}')" 
         cur.execute(instruction)
         id = cur.lastrowid
         instruction = f"INSERT INTO producto_bitacora (idproducto, fecha, cantidad, ingreso) VALUES ('{id}', '{fecha}', '{existencia}', '{1}')" 
