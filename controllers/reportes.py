@@ -135,6 +135,7 @@ def saldosCliente():
     contador = 5
     for i in range(len(data)):
         cliente = data[i].get('cliente')
+        agente = data[i].get('agente')
         compra = data[i].get('idVenta')
         fecha = data[i].get('fecha')
         pagado = data[i].get('montoPagado')
@@ -147,13 +148,14 @@ def saldosCliente():
             dvencidos = 0
         else : 
             dvencidos = dvencidos - 30
-        sheet['A'+str(contador)] = cliente 
-        sheet['B'+str(contador)] = compra 
-        sheet['C'+str(contador)] = fecha
-        sheet['D'+str(contador)] = apagar
-        sheet['E'+str(contador)] = pagado
-        sheet['F'+str(contador)] = ppendiente
-        sheet['G'+str(contador)] = dvencidos
+        sheet['A'+str(contador)] = agente
+        sheet['B'+str(contador)] = cliente 
+        sheet['C'+str(contador)] = compra 
+        sheet['D'+str(contador)] = fecha
+        sheet['E'+str(contador)] = apagar
+        sheet['F'+str(contador)] = pagado
+        sheet['G'+str(contador)] = ppendiente
+        sheet['H'+str(contador)] = dvencidos
         contador += 1 
     wb.save(archivoe) 
     crearPdf(archivor, archivo)
