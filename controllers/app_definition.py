@@ -49,6 +49,17 @@ def create_app(test_config=None):
         idAgente = tablaAgente('ACTUALIZAR',jsonValue.get('name'),jsonValue.get('address'),jsonValue.get('phone'),jsonValue.get('email'),id)
         return str(idAgente), 200
 
+    @app.route('/client/', methods= ['GET'])
+    @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
+    def get_Clients():
+        query = "SELECT cliente.id,cliente.idagente,cliente.nombre,cliente.rfc,cliente.telefono,cliente.correo, agente.correo, agente.nombre FROM cliente INNER JOIN agente on cliente.idagente = agente.id";
+        # print(query)
+        rows = executeQuery(query)
+        data =[]
+        for row in rows:
+            data.append({'id':row[0],'nombre':row[2],'rfc':row[3],'telefono':row[4],'correo':row[5], 'agente':{'id':row[1],'email': row[6], 'name':row[7] }})
+        return jsonify(data), 200 if len(data) else 204
+
     @app.route('/client/<nombre>', methods= ['GET'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def get_dataClient(nombre):
