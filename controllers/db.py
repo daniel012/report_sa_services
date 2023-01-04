@@ -148,11 +148,6 @@ def get_saldoCliente():
         debt = row[4] - row[3]
         map[row[5]][row[1]]['debt'] += debt
         map[row[5]][row[1]]['data'].append({'idVenta':row[0],'cliente':row[1],'fecha':row[2],'montoPagado':row[3], 'totalPagar':row[4], 'agente':row[5], 'deuda':row[6], 'debt': debt})
-    # print(map)
-    # data =[]
-    # for row in rows:
-    #    data.append({'idVenta':row[0],'cliente':row[1],'fecha':row[2],'montoPagado':row[3], 'totalPagar':row[4], 'agente':row[5], 'deuda':row[6]})
-    # print(data)
     return map
 
 def tablaAgente(sql, nombre, direccion, telefono, correo, id=None):
