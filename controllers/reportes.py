@@ -1,6 +1,8 @@
 from pkgutil import get_data
 from pydoc import cli
 from openpyxl import load_workbook, Workbook
+from openpyxl.styles import Font
+from openpyxl.styles.colors import Color
 import win32com.client
 #from win32com.client import Dispatch
 from .db import get_agente, get_productos, get_estadisticaCliente, get_saldoCliente, get_compPago, get_compVenta, cierreDeVenta
@@ -138,31 +140,28 @@ def saldosCliente():
     # Crear Excel
     wb = load_workbook(base)
     sheet = wb.active
-    contador = 5
-    for i in range(len(data)):
-        cliente = data[i].get('cliente')
-        agente = data[i].get('agente')
-        compra = data[i].get('idVenta')
-        fecha = data[i].get('fecha')
-        pagado = data[i].get('montoPagado')
-        apagar = data[i].get('totalPagar')
-        ppendiente = apagar - pagado
-        d0 = datetime.strptime(fecha, "%Y-%m-%d")
-        d1 = datetime.strptime(hoyf, "%d%m%Y")
-        dvencidos = (d1 - d0).days
-        if dvencidos < 30 : 
-            dvencidos = 0
-        else : 
-            dvencidos = dvencidos - 30
-        sheet['A'+str(contador)] = agente
-        sheet['B'+str(contador)] = cliente 
-        sheet['C'+str(contador)] = compra 
-        sheet['D'+str(contador)] = fecha
-        sheet['E'+str(contador)] = apagar
-        sheet['F'+str(contador)] = pagado
-        sheet['G'+str(contador)] = ppendiente
-        sheet['H'+str(contador)] = dvencidos
-        contador += 1 
+    head = 5
+    for agent in data:
+        sheet['A'+str(head)] = agent
+        head+=1
+        for client in data[agent]:
+            sheet['B'+str(head)] = client 
+            head+=1
+            for venta in data[agent][client]['data']:
+                sheet['C'+str(head)] = venta['idVenta'] 
+                sheet['D'+str(head)] = venta['fecha']
+                sheet['E'+str(head)] = venta['totalPagar']
+                sheet['F'+str(head)] = venta['montoPagado']
+                sheet['G'+str(head)] = venta['debt']
+                d0 = datetime.strptime(venta['fecha'], "%Y-%m-%d")
+                d1 = datetime.strptime(hoyf, "%d%m%Y")
+                distance = (d1 - d0).days
+                sheet['H'+str(head)] = 0 if distance < 30 else distance - 30
+                head+=1
+            sheet['G'+str(head)]= data[agent][client]['debt']
+            sheet['G'+str(head)].font = Font(bold=True,color = "FFFF0000")
+            head+=1    
+        head+=1 
     wb.save(archivoe) 
     crearPdf(archivor, archivo)
 

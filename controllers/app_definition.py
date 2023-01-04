@@ -49,7 +49,7 @@ def create_app(test_config=None):
         idAgente = tablaAgente('ACTUALIZAR',jsonValue.get('name'),jsonValue.get('address'),jsonValue.get('phone'),jsonValue.get('email'),id)
         return str(idAgente), 200
 
-    @app.route('/client/', methods= ['GET'])
+    @app.route('/client', methods= ['GET'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def get_Clients():
         query = "SELECT cliente.id,cliente.idagente,cliente.nombre,cliente.rfc,cliente.telefono,cliente.correo, agente.correo, agente.nombre FROM cliente INNER JOIN agente on cliente.idagente = agente.id";
