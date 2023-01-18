@@ -148,7 +148,8 @@ def saldosCliente():
             sheet['B'+str(head)] = client 
             head+=1
             for venta in data[agent][client]['data']:
-                sheet['C'+str(head)] = venta['idVenta'] 
+                sheet['B'+str(head)] = venta['product']
+                sheet['C'+str(head)] = venta['idVenta']
                 sheet['D'+str(head)] = venta['fecha']
                 sheet['E'+str(head)] = venta['totalPagar']
                 sheet['F'+str(head)] = venta['montoPagado']
@@ -227,9 +228,9 @@ def comprobanteVenta(idVenta):
         preciou = productos[i].get('precio')
         descripcion = productos[i].get('descripcion')
         preciott = (preciou*cantidad)
-        sheet['A'+str(filae)] = codProducto
+        sheet['A'+str(filae)] = cantidad
         sheet['B'+str(filae)] = descripcion
-        sheet['C'+str(filae)] = cantidad
+        sheet['C'+str(filae)] = codProducto
         sheet['D'+str(filae)] = preciou
         sheet['E'+str(filae)] = preciott
         

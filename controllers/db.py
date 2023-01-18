@@ -112,7 +112,7 @@ def get_compPago(idVenta):
 
 def get_compVenta(idVenta):
     #instruccion = f"SELECT idproducto, cantidad, precio FROM producto_venta WHERE idventa == {idVenta}"
-    instruccion = f"SELECT producto_venta.idproducto, producto_venta.cantidad, producto_venta.precio, producto.descripcion FROM producto_venta INNER JOIN producto ON producto.id == producto_venta.idproducto WHERE idventa == {idVenta}"
+    instruccion = f"SELECT producto.nom_corto, producto_venta.cantidad, producto_venta.precio, producto.descripcion FROM producto_venta INNER JOIN producto ON producto.id == producto_venta.idproducto WHERE idventa == {idVenta}"
     rows = executeQuery(instruccion)
     productos =[]
     for row in rows:
@@ -137,7 +137,7 @@ def get_estadisticaCliente(cliente):
     return data
 
 def get_saldoCliente():
-    instruccion = f"SELECT venta.id,cliente.nombre,venta.fecha,venta.monto_pago,venta.total, agente.nombre,(venta.total - venta.monto_pago) FROM venta  INNER JOIN cliente ON cliente.id==venta.idcliente JOIN agente on agente.id == cliente.idagente WHERE venta.total!=venta.monto_pago ORDER BY agente.nombre,cliente.nombre, (venta.total - venta.monto_pago) DESC"
+    instruccion = f"SELECT venta.id,cliente.nombre,venta.fecha,venta.monto_pago,venta.total, agente.nombre,(venta.total - venta.monto_pago), producto.nom_corto FROM venta  INNER JOIN cliente ON cliente.id==venta.idcliente JOIN agente on agente.id == cliente.idagente JOIN producto_venta ON producto_venta.idventa == venta.id JOIN producto ON producto.id == producto_venta.idproducto WHERE venta.total!=venta.monto_pago ORDER BY agente.nombre,cliente.nombre, (venta.total - venta.monto_pago) DESC"
     rows = executeQuery(instruccion)
     map = {}
     for row in rows:
@@ -147,7 +147,7 @@ def get_saldoCliente():
             map[row[5]][row[1]] = {'debt': 0, 'data':[]} 
         debt = row[4] - row[3]
         map[row[5]][row[1]]['debt'] += debt
-        map[row[5]][row[1]]['data'].append({'idVenta':row[0],'cliente':row[1],'fecha':row[2],'montoPagado':row[3], 'totalPagar':row[4], 'agente':row[5], 'deuda':row[6], 'debt': debt})
+        map[row[5]][row[1]]['data'].append({'idVenta':row[0],'cliente':row[1],'fecha':row[2],'montoPagado':row[3], 'totalPagar':row[4], 'agente':row[5], 'deuda':row[6], 'debt': debt, 'product': row[7]})
     return map
 
 def tablaAgente(sql, nombre, direccion, telefono, correo, id=None):
