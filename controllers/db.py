@@ -140,15 +140,18 @@ def get_saldoCliente():
     instruccion = f"SELECT venta.id,cliente.nombre,venta.fecha,venta.monto_pago,venta.total, agente.nombre,(venta.total - venta.monto_pago), producto.nom_corto FROM venta  INNER JOIN cliente ON cliente.id==venta.idcliente JOIN agente on agente.id == cliente.idagente JOIN producto_venta ON producto_venta.idventa == venta.id JOIN producto ON producto.id == producto_venta.idproducto WHERE venta.total!=venta.monto_pago ORDER BY agente.nombre,cliente.nombre, (venta.total - venta.monto_pago) DESC"
     rows = executeQuery(instruccion)
     map = {}
+    agentSum = {};
     for row in rows:
         if row[5] not in map: 
             map[row[5]] = {}
+            agentSum[row[5]] = 0
         if row[1] not in map[row[5]]:
             map[row[5]][row[1]] = {'debt': 0, 'data':[]} 
         debt = row[4] - row[3]
         map[row[5]][row[1]]['debt'] += debt
+        agentSum[row[5]] += debt
         map[row[5]][row[1]]['data'].append({'idVenta':row[0],'cliente':row[1],'fecha':row[2],'montoPagado':row[3], 'totalPagar':row[4], 'agente':row[5], 'deuda':row[6], 'debt': debt, 'product': row[7]})
-    return map
+    return {'data':map, 'agentSum':agentSum}
 
 def tablaAgente(sql, nombre, direccion, telefono, correo, id=None):
     # Stabilished a connection
@@ -312,6 +315,13 @@ def executeQuery(query):
     return rows
 
 def cierreDeVenta(startDate, endDate=None):
+    result = []
+    productSum = {}
+    sumSellType = {
+        'cash': 0,
+        'debt':0
+    }
+
     con = sqlite3.connect('msa.db')
     cursor = con.cursor()
     query = f"SELECT venta.factura, cliente.nombre, venta.id, venta.fecha, venta.total, venta.monto_pago FROM venta INNER JOIN cliente on venta.idcliente == cliente.id "
@@ -329,6 +339,8 @@ def cierreDeVenta(startDate, endDate=None):
     for venta in rows:
         idsVenta.append(f"{venta[2]}")
         info[venta[2]] = {'ventaId':venta[2], 'ventaFactura':venta[0], 'ventaCliente':venta[1],'date':venta[3],'total':venta[4], 'pagado':venta[5]}
+        sumSellType['cash'] += venta[5]
+        sumSellType['debt'] += venta[4]-venta[5]
     idsVenta = ",".join(idsVenta)
     query =f"SELECT producto_venta.idventa, producto_venta.precio, producto_venta.cantidad, producto.nom_corto, producto.nombre, producto.umedida FROM producto_venta INNER JOIN producto ON producto.id == producto_venta.idproducto WHERE idventa IN ({idsVenta}) ORDER BY producto_venta.idventa"
     cursor.execute(query)
@@ -341,6 +353,11 @@ def cierreDeVenta(startDate, endDate=None):
         price = round(float(producto[2])*float(producto[1]),2)
         listProduct.append({'price':price, 'code':producto[3], 'name': producto[4], 'amount': f"{producto[2]} {producto[5]}"})
         info[idVenta]['listProduct'] = listProduct
+        if producto[3] not in productSum:
+            productSum[producto[3]] = {'sum' :0, 'amount':0 }
+
+        productSum[producto[3]]['amount'] += producto[2]
+        productSum[producto[3]]['sum'] += (producto[1] * producto[2])
 
     query = f"SELECT idventa, monto, forma_pago FROM historial_pagos WHERE idventa IN ({idsVenta}) "
 
@@ -360,14 +377,10 @@ def cierreDeVenta(startDate, endDate=None):
         else:
             listCounts[key] = round(float(payment[1]),2)
 
-        info[payment[0]]['payment'] = listCounts
-
-    result = []
+        info[payment[0]]['payment'] = listCounts   
     for row in info:
         result.append(info[row])
-    #print(result)
-
     con.close()
-    return result
+    return {'info': result, "productSum":productSum, "sumSell": sumSellType}
 
 #createDB()

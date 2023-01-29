@@ -132,7 +132,9 @@ def estadisticasCliente(id):
     crearPdf(archivor, archivo)
 
 def saldosCliente():
-    data = get_saldoCliente()
+    information = get_saldoCliente()
+    data = information['data']
+    agentSum = information['agentSum']
     archivo = "saldoDeudorCliente"
     archivor = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf
     base = ruta+"\\reportes\\base\\o"+archivo+".xlsx"
@@ -143,6 +145,8 @@ def saldosCliente():
     head = 5
     for agent in data:
         sheet['A'+str(head)] = agent
+        sheet['G'+str(head)] = agentSum[agent]
+        sheet['G'+str(head)].font = Font(bold=True,color = "FFFF0000")
         head+=1
         for client in data[agent]:
             sheet['B'+str(head)] = client 
@@ -239,7 +243,11 @@ def comprobanteVenta(idVenta):
     crearPdf(archivor, archivo)
 
 def reporteCierreVenta(startDate, endDate=None):
-    data = cierreDeVenta(startDate, endDate)
+    complete = cierreDeVenta(startDate, endDate)
+    data = complete['info']
+    productSum = complete['productSum']
+    sumSell = complete['sumSell']
+
     archivo = "cierreVenta"
     archivor = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf
     base = ruta+"\\reportes\\base\\o"+archivo+".xlsx"
@@ -285,6 +293,27 @@ def reporteCierreVenta(startDate, endDate=None):
             filae += 1
         sheet['J'+str(filae)] = ventaTotal
         filae += 2
+    
+    sheet['G'+str(filae)] = "Total de ventas Efectivo"
+    sheet['G'+str(filae)].font = Font(bold=True)
+    sheet['I'+str(filae)] = sumSell['cash']
+    filae += 1
+    sheet['G'+str(filae)] = "Total de Credito"
+    sheet['G'+str(filae)].font = Font(bold=True)
+    sheet['I'+str(filae)] = sumSell['debt']
+
+    
+
+    filae += 3
+    sheet['D'+str(filae)] = 'Producto'
+    sheet['D'+str(filae)].font = Font(bold=True)
+    filae += 1
+    for product in productSum: 
+        sheet['F'+str(filae)] = product
+        sheet['H'+str(filae)] = productSum[product]['amount']
+        sheet['I'+str(filae)] = productSum[product]['sum']
+        filae+=1
+
     wb.save(archivoe) 
     crearPdf(archivor, archivo)
 
