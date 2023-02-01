@@ -154,11 +154,11 @@ def saldosCliente():
             for venta in data[agent][client]['data']:
                 sheet['B'+str(head)] = venta['product']
                 sheet['C'+str(head)] = venta['idVenta']
-                sheet['D'+str(head)] = venta['fecha']
+                sheet['D'+str(head)] =  datetime.strftime(venta['fecha'],'%d-%b-%y')
                 sheet['E'+str(head)] = venta['totalPagar']
                 sheet['F'+str(head)] = venta['montoPagado']
                 sheet['G'+str(head)] = venta['debt']
-                d0 = datetime.strptime(venta['fecha'], "%Y-%m-%d")
+                d0 = venta['fecha']
                 d1 = datetime.strptime(hoyf, "%d%m%Y")
                 distance = (d1 - d0).days
                 sheet['H'+str(head)] = 0 if distance < 30 else distance - 30
@@ -242,24 +242,62 @@ def comprobanteVenta(idVenta):
     wb.save(archivoe) 
     crearPdf(archivor, archivo)
 
-def reporteCierreVenta(startDate, endDate=None):
-    complete = cierreDeVenta(startDate, endDate)
-    data = complete['info']
-    productSum = complete['productSum']
-    sumSell = complete['sumSell']
-
+def reporteCierreVenta(startDate:str, endDate=None):
+    dateTimeStar = datetime.strptime(startDate,'%Y%m%d')
+    generatePrevInfo:bool = False
+    if dateTimeStar.date() == datetime.today().date() and endDate is None:
+        generatePrevInfo = True
+    
     archivo = "cierreVenta"
     archivor = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf
     base = ruta+"\\reportes\\base\\o"+archivo+".xlsx"
     archivoe = archivor+".xlsx"
-    # Crear Excel
     wb = load_workbook(base)
-    sheet = wb.active    
-    filae = 6
+    sheet = wb.active  
+
+    completedInformation = cierreDeVenta(generatePrevInfo, startDate, endDate)
+    filae:int = generateClosingSales(sheet,completedInformation['basicInfo'], startDate, endDate)
+    if generatePrevInfo:
+        generateSumClSls(sheet, filae, completedInformation['preCalculated'])
+
+    wb.save(archivoe)
+    crearPdf(archivor, archivo)
+
+def generateSumClSls(sheet, filae:int, preCalculated):
+    filae+= 3
+    currentInfo = preCalculated['currentInfo']
+    prevBalance = preCalculated['prevBalance']
+
+    sheet['D'+str(filae)] = "Saldo Anterior"
+    sheet['D'+str(filae)].font = Font(bold=True)
+    sheet['I'+str(filae)] = prevBalance
+    filae+= 1
+
+    sheet['D'+str(filae)] = "Cobransa Reportada"
+    sheet['D'+str(filae)].font = Font(bold=True)
+    sheet['I'+str(filae)] = currentInfo['paid']
+    filae+= 1
+
+    sheet['D'+str(filae)] = "Ventas a Credito"
+    sheet['D'+str(filae)].font = Font(bold=True)
+    sheet['I'+str(filae)] = currentInfo['debt']
+    filae+= 1
+
+    sheet['D'+str(filae)] = "Saldo Actual"
+    sheet['D'+str(filae)].font = Font(bold=True)
+    sheet['I'+str(filae)] = currentInfo['balance']
+    filae+= 1
+
+
+def generateClosingSales(sheet, basicInfo, startDate, endDate):
+    data = basicInfo['info']
+    productSum = basicInfo['productSum']
+    sumSell = basicInfo['sumSell'] 
+    filae:int = 6
     finicio = datetime.strptime(startDate, "%Y%m%d")
     ffin = datetime.strptime(endDate, "%Y%m%d") if endDate is not None else ''
-    sheet['H'+str(2)] = finicio.strftime("%d/%m/%Y")
-    sheet['I'+str(2)] = "-"+str(ffin.strftime("%d/%m/%Y")) if endDate is not None else ''
+    sheet['H'+str(2)] = finicio.strftime("%d/%b/%Y")
+    sheet['I'+str(2)] = "-"+str(ffin.strftime("%d/%b/%Y")) if endDate is not None else ''
     for i in range(len(data)):
         fechav = datetime.strptime(data[i].get('date'), "%Y-%m-%d")
         ventaId = data[i].get('ventaId')
@@ -276,7 +314,7 @@ def reporteCierreVenta(startDate, endDate=None):
             tipo = "Remision"
         else:
             tipo = "Factura"
-        sheet['A'+str(filae)] = fechav.strftime("%d/%m/%Y")
+        sheet['A'+str(filae)] = fechav.strftime("%d/%b/%Y")
         sheet['B'+str(filae)] = tipo
         sheet['C'+str(filae)] = credito
         sheet['D'+str(filae)] = ventaCliente
@@ -301,21 +339,22 @@ def reporteCierreVenta(startDate, endDate=None):
     sheet['G'+str(filae)] = "Total de Credito"
     sheet['G'+str(filae)].font = Font(bold=True)
     sheet['I'+str(filae)] = sumSell['debt']
-
-    
-
+    filae += 1
+    sheet['G'+str(filae)] = "Total"
+    sheet['G'+str(filae)].font = Font(bold=True)
+    sheet['I'+str(filae)] = sumSell['debt'] + sumSell['cash']
     filae += 3
-    sheet['D'+str(filae)] = 'Producto'
-    sheet['D'+str(filae)].font = Font(bold=True)
+
+    sheet['G'+str(filae)] = 'Producto'
+    sheet['G'+str(filae)].font = Font(bold=True)
     filae += 1
     for product in productSum: 
-        sheet['F'+str(filae)] = product
+        sheet['G'+str(filae)] = product
         sheet['H'+str(filae)] = productSum[product]['amount']
         sheet['I'+str(filae)] = productSum[product]['sum']
         filae+=1
 
-    wb.save(archivoe) 
-    crearPdf(archivor, archivo)
+    return filae
 
 # Crear PDF
 def crearPdf(archivor, archivo):

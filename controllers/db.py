@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import date, datetime, timedelta
 
 def createDB():
     # Stabilished a connection
@@ -150,7 +151,8 @@ def get_saldoCliente():
         debt = row[4] - row[3]
         map[row[5]][row[1]]['debt'] += debt
         agentSum[row[5]] += debt
-        map[row[5]][row[1]]['data'].append({'idVenta':row[0],'cliente':row[1],'fecha':row[2],'montoPagado':row[3], 'totalPagar':row[4], 'agente':row[5], 'deuda':row[6], 'debt': debt, 'product': row[7]})
+        fecha = datetime.strptime(row[2],'%Y-%m-%d')
+        map[row[5]][row[1]]['data'].append({'idVenta':row[0],'cliente':row[1],'fecha': fecha,'montoPagado':row[3], 'totalPagar':row[4], 'agente':row[5], 'deuda':row[6], 'debt': debt, 'product': row[7]})
     return {'data':map, 'agentSum':agentSum}
 
 def tablaAgente(sql, nombre, direccion, telefono, correo, id=None):
@@ -314,16 +316,93 @@ def executeQuery(query):
     con.close()
     return rows
 
-def cierreDeVenta(startDate, endDate=None):
+def cierreDeVenta(generatePrevInfo:bool, startDate, endDate=None):
+    con = sqlite3.connect('msa.db')
+    cursor = con.cursor()
+    basicInfo = createBasicInfo(cursor, startDate, endDate)
+    preCalculated = {}
+    
+    if generatePrevInfo: 
+        preCalculated = summaryPreCalculated(cursor)
+    
+    con.commit()
+    con.close()
+    return {
+       'basicInfo': basicInfo, 
+       'preCalculated': preCalculated
+    }
+
+def summaryPreCalculated(cursor: sqlite3.Cursor):
+    query:str = "SELECT lastSellId, debt, paid, date, balance FROM precalculatedInformation ORDER BY id DESC limit 1"
+    cursor.execute(query)
+    preCalculated = cursor.fetchall()
+    prevLastid:int = 0
+    prevDebt:int =0
+    prevPaid:int =0
+    prevDate = ''
+    prevBalance:int = 0
+    currentInfo = {
+        'paid': 0, 
+        'debt': 0,
+        'balance':0,
+        'lastSellId': 0
+    }
+
+    if len(preCalculated) > 0: 
+        prevLastid = preCalculated[0][0]
+        prevDebt = preCalculated[0][1]
+        prevPaid = preCalculated[0][2]
+        prevDate = preCalculated[0][3]
+        prevBalance = preCalculated[0][4]
+
+        if preCalculated[0][3] == datetime.today().date().strftime('%Y/%m/%d'):
+            return {
+                'currentInfo': {
+                    'paid':prevPaid,
+                    'debt':prevDebt,
+                    'balance': prevBalance
+                }, 
+                'prevDebt': prevDebt, 
+                'prevPaid': prevPaid, 
+                'prevDate': prevDate,
+                'prevBalance': prevBalance,
+                'lastSellId': prevLastid
+            }
+
+    query = f"SELECT total, monto_pago, id FROM venta WHERE id > {prevLastid} ORDER BY id desc"
+    cursor.execute(query)
+    current = cursor.fetchall()
+    if len(current) > 0:
+        for sell in current: 
+            currentInfo['paid'] += sell[1]
+            currentInfo['debt'] += (sell[0] -sell[1])
+        currentInfo['lastSellId'] = current[0][2]
+    else:
+        currentInfo['lastSellId'] = prevLastid
+    
+    currentInfo['balance'] = currentInfo['paid'] + prevBalance
+
+    query = f"INSERT INTO precalculatedInformation (date, lastSellId, balance, paid, debt) values('{datetime.today().date().strftime('%Y/%m/%d')}', {currentInfo['lastSellId']}, {currentInfo['balance']}, {currentInfo['paid']}, {currentInfo['debt']})"
+    cursor.execute(query)
+
+    
+
+    return {
+        'currentInfo': currentInfo, 
+        'prevDebt': prevDebt, 
+        'prevPaid': prevPaid, 
+        'prevDate': prevDate,
+        'prevBalance': prevBalance
+    }
+
+def createBasicInfo(cursor: sqlite3.Cursor, startDate, endDate=None):
     result = []
     productSum = {}
     sumSellType = {
         'cash': 0,
         'debt':0
     }
-
-    con = sqlite3.connect('msa.db')
-    cursor = con.cursor()
+    
     query = f"SELECT venta.factura, cliente.nombre, venta.id, venta.fecha, venta.total, venta.monto_pago FROM venta INNER JOIN cliente on venta.idcliente == cliente.id "
     clause = ''
     if endDate is None:
@@ -380,7 +459,5 @@ def cierreDeVenta(startDate, endDate=None):
         info[payment[0]]['payment'] = listCounts   
     for row in info:
         result.append(info[row])
-    con.close()
+    
     return {'info': result, "productSum":productSum, "sumSell": sumSellType}
-
-#createDB()
