@@ -1,7 +1,7 @@
 from pkgutil import get_data
 from pydoc import cli
 from openpyxl import load_workbook, Workbook
-from openpyxl.styles import Font
+from openpyxl.styles import Font,  PatternFill
 from openpyxl.styles.colors import Color
 import win32com.client
 #from win32com.client import Dispatch
@@ -135,6 +135,7 @@ def saldosCliente():
     information = get_saldoCliente()
     data = information['data']
     agentSum = information['agentSum']
+    total = information['total']
     archivo = "saldoDeudorCliente"
     archivor = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf
     base = ruta+"\\reportes\\base\\o"+archivo+".xlsx"
@@ -166,7 +167,17 @@ def saldosCliente():
             sheet['G'+str(head)]= data[agent][client]['debt']
             sheet['G'+str(head)].font = Font(bold=True,color = "FFFF0000")
             head+=1    
-        head+=1 
+        head+=1
+    head+= 1
+    
+    for cell in sheet[f"{head}:{head}"]:
+        cell.font = Font(bold=True)
+        cell.fill = PatternFill("solid", start_color="FFBF00")
+
+    sheet['B'+str(head)]= 'GRAN TOTAL'
+    sheet['G'+str(head)]= total
+    sheet['G'+str(head)].font = Font(color = "FFFF0000") 
+    
     wb.save(archivoe) 
     crearPdf(archivor, archivo)
 

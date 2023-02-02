@@ -141,7 +141,8 @@ def get_saldoCliente():
     instruccion = f"SELECT venta.id,cliente.nombre,venta.fecha,venta.monto_pago,venta.total, agente.nombre,(venta.total - venta.monto_pago), producto.nom_corto FROM venta  INNER JOIN cliente ON cliente.id==venta.idcliente JOIN agente on agente.id == cliente.idagente JOIN producto_venta ON producto_venta.idventa == venta.id JOIN producto ON producto.id == producto_venta.idproducto WHERE venta.total!=venta.monto_pago ORDER BY agente.nombre,cliente.nombre, (venta.total - venta.monto_pago) DESC"
     rows = executeQuery(instruccion)
     map = {}
-    agentSum = {};
+    agentSum = {}
+    total = 0
     for row in rows:
         if row[5] not in map: 
             map[row[5]] = {}
@@ -151,9 +152,10 @@ def get_saldoCliente():
         debt = row[4] - row[3]
         map[row[5]][row[1]]['debt'] += debt
         agentSum[row[5]] += debt
+        total += debt
         fecha = datetime.strptime(row[2],'%Y-%m-%d')
         map[row[5]][row[1]]['data'].append({'idVenta':row[0],'cliente':row[1],'fecha': fecha,'montoPagado':row[3], 'totalPagar':row[4], 'agente':row[5], 'deuda':row[6], 'debt': debt, 'product': row[7]})
-    return {'data':map, 'agentSum':agentSum}
+    return {'data':map, 'agentSum':agentSum, 'total': total}
 
 def tablaAgente(sql, nombre, direccion, telefono, correo, id=None):
     # Stabilished a connection
