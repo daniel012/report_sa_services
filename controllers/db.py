@@ -289,7 +289,8 @@ def VentaEntrega(id):
 def insertarHistorialPago(idventa,paymentDate,  payment, paymentType, newPayment = None):
     con = sqlite3.connect('msa.db')
     cur = con.cursor()
-    instruction = f"INSERT INTO historial_pagos (idventa, monto, fecha, forma_pago) VALUES ('{idventa}', '{payment}', '{paymentDate}', '{paymentType}')"
+    # paymentType true cash, by now always is cash
+    instruction = f"INSERT INTO historial_pagos (idventa, monto, fecha, forma_pago) VALUES ('{idventa}', '{payment}', '{paymentDate}', '{True}')"
     cur.execute(instruction)
     id = cur.lastrowid
     if newPayment is not None:
@@ -343,6 +344,7 @@ def summaryPreCalculated(cursor: sqlite3.Cursor):
     prevPaid:int =0
     prevDate = ''
     prevBalance:int = 0
+    prevClausule:str= ''
     currentInfo = {
         'paid': 0, 
         'debt': 0,
@@ -356,6 +358,8 @@ def summaryPreCalculated(cursor: sqlite3.Cursor):
         prevPaid = preCalculated[0][2]
         prevDate = preCalculated[0][3]
         prevBalance = preCalculated[0][4]
+        dateClasule = prevDate[0:4]+prevDate[5:7]+prevDate[8:10]    
+        prevClausule = f" WHERE CAST( substr(fecha,1,4)||substr(fecha,6,2)||substr(fecha,9,2) AS INT)  >= {dateClasule}"
 
         if preCalculated[0][3] == datetime.today().date().strftime('%Y/%m/%d'):
             return {
@@ -376,13 +380,19 @@ def summaryPreCalculated(cursor: sqlite3.Cursor):
     current = cursor.fetchall()
     if len(current) > 0:
         for sell in current: 
-            currentInfo['paid'] += sell[1]
             currentInfo['debt'] += (sell[0] -sell[1])
         currentInfo['lastSellId'] = current[0][2]
     else:
         currentInfo['lastSellId'] = prevLastid
     
-    currentInfo['balance'] = currentInfo['paid'] + prevBalance
+    
+    query = f"SELECT monto FROM historial_pagos {prevClausule}"
+    cursor.execute(query)
+    current = cursor.fetchall()
+    for pago in current:
+        currentInfo['paid'] += int(pago[0])
+
+    currentInfo['balance'] = prevBalance - currentInfo['paid'] + currentInfo['debt'] 
 
     query = f"INSERT INTO precalculatedInformation (date, lastSellId, balance, paid, debt) values('{datetime.today().date().strftime('%Y/%m/%d')}', {currentInfo['lastSellId']}, {currentInfo['balance']}, {currentInfo['paid']}, {currentInfo['debt']})"
     cursor.execute(query)
@@ -404,7 +414,7 @@ def createBasicInfo(cursor: sqlite3.Cursor, startDate, endDate=None):
         'cash': 0,
         'debt':0
     }
-    
+    ## check here is how guapo
     query = f"SELECT venta.factura, cliente.nombre, venta.id, venta.fecha, venta.total, venta.monto_pago FROM venta INNER JOIN cliente on venta.idcliente == cliente.id "
     clause = ''
     if endDate is None:

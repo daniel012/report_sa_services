@@ -15,4 +15,13 @@ def createCalculatedTable():
         con.commit()
         con.close()
 
+def updateExample():
+       con = sqlite3.connect('C:\\Users\\jdaniel\\Desktop\\calera_project\\report_sa_services\\msa.db')
+       cur = con.cursor()
+       cur.execute('''UPDATE precalculatedInformation SET date="2023/02/04" WHERE id ="1" ''')  
+       con.commit()
+       con.close()
+
+
+# updateExample()
 createCalculatedTable()
