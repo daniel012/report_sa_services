@@ -263,14 +263,14 @@ def tablaProductoVenta(sql, idproducto, idventa, cantidad, costo):
     # We can also close the connection if we are done with it.
     con.close()
 
-def creatVenta(idcliente, fecha, monto_pago, total, factura, entregado):
+def newSell(idcliente, fecha, monto_pago, total, factura, entregado, pricedOut:bool):
     if factura != '' :
         facturabd = executeQuery(f"SELECT factura FROM venta WHERE factura = '{factura}'")
         if len(facturabd) != 0:
             return -1
     con = sqlite3.connect('msa.db')
     cur = con.cursor()
-    instruction = f"INSERT INTO venta (idcliente, fecha, monto_pago, total, factura, entregado) VALUES ('{idcliente}', '{fecha}', '{monto_pago}', '{total}', '{factura}', '{bool(entregado)}')"
+    instruction = f"INSERT INTO venta (idcliente, fecha, monto_pago, total, factura, entregado, pricedOut) VALUES ('{idcliente}', '{fecha}', '{monto_pago}', '{total}', '{factura}', '{bool(entregado)}', {(1 if pricedOut else 0)})"
     cur.execute(instruction)
     con.commit()
     id = cur.lastrowid
@@ -286,16 +286,22 @@ def VentaEntrega(id):
     con.close()
     return id
 
-def insertarHistorialPago(idventa,paymentDate,  payment, paymentType, newPayment = None):
+def insertarHistorialPago(idventa,paymentDate,  payment, paymentType):
     con = sqlite3.connect('msa.db')
     cur = con.cursor()
     # paymentType true cash, by now always is cash
     instruction = f"INSERT INTO historial_pagos (idventa, monto, fecha, forma_pago) VALUES ('{idventa}', '{payment}', '{paymentDate}', '{True}')"
     cur.execute(instruction)
     id = cur.lastrowid
-    if newPayment is not None:
-        instruction = f"UPDATE venta SET monto_pago = {newPayment} where id = '{idventa}'"
-        cur.execute(instruction)
+    con.commit()
+    con.close()
+    return id
+
+def updateSelldebt(idventa, newPayment):
+    con = sqlite3.connect('msa.db')
+    cur = con.cursor()
+    instruction = f"UPDATE venta SET monto_pago = {newPayment} where id = '{idventa}'"
+    cur.execute(instruction)
     con.commit()
     con.close()
     return id
@@ -336,9 +342,6 @@ def cierreDeVenta(generatePrevInfo:bool, startDate, endDate=None):
     }
 
 def summaryPreCalculated(cursor: sqlite3.Cursor):
-    query:str = "SELECT lastSellId, debt, paid, date, balance FROM precalculatedInformation ORDER BY id DESC limit 1"
-    cursor.execute(query)
-    preCalculated = cursor.fetchall()
     prevLastid:int = 0
     prevDebt:int =0
     prevPaid:int =0
@@ -351,42 +354,45 @@ def summaryPreCalculated(cursor: sqlite3.Cursor):
         'balance':0,
         'lastSellId': 0
     }
+    
+    query:str = "SELECT lastSellId, debt, paid, date, balance FROM precalculatedInformation ORDER BY id DESC limit 1"
+    cursor.execute(query)
+    preCalculated = cursor.fetchall()
 
-    if len(preCalculated) > 0: 
-        prevLastid = preCalculated[0][0]
-        prevDebt = preCalculated[0][1]
-        prevPaid = preCalculated[0][2]
-        prevDate = preCalculated[0][3]
-        prevBalance = preCalculated[0][4]
-        dateClasule = prevDate[0:4]+prevDate[5:7]+prevDate[8:10]    
-        prevClausule = f" WHERE CAST( substr(fecha,1,4)||substr(fecha,6,2)||substr(fecha,9,2) AS INT)  >= {dateClasule}"
+    prevLastid = preCalculated[0][0]
+    prevDebt = preCalculated[0][1]
+    prevPaid = preCalculated[0][2]
+    prevDate = preCalculated[0][3]
+    prevBalance = preCalculated[0][4]
 
-        if preCalculated[0][3] == datetime.today().date().strftime('%Y/%m/%d'):
-            return {
-                'currentInfo': {
-                    'paid':prevPaid,
-                    'debt':prevDebt,
-                    'balance': prevBalance
-                }, 
-                'prevDebt': prevDebt, 
-                'prevPaid': prevPaid, 
-                'prevDate': prevDate,
-                'prevBalance': prevBalance,
-                'lastSellId': prevLastid
-            }
+    if preCalculated[0][3] == datetime.today().date().strftime('%Y/%m/%d'):
+        return {
+            'currentInfo': {
+                'paid':prevPaid,
+                'debt':prevDebt,
+                'balance': prevBalance
+            }, 
+            'prevDebt': prevDebt, 
+            'prevPaid': prevPaid, 
+            'prevDate': prevDate,
+            'prevBalance': prevBalance,
+            'lastSellId': prevLastid
+        }
 
-    query = f"SELECT total, monto_pago, id FROM venta WHERE id > {prevLastid} ORDER BY id desc"
+    query = f"SELECT total, monto_pago, id, pricedOut FROM venta WHERE id > {prevLastid} ORDER BY id desc"
     cursor.execute(query)
     current = cursor.fetchall()
     if len(current) > 0:
         for sell in current: 
-            currentInfo['debt'] += (sell[0] -sell[1])
+            if sell[3] == 0:
+                currentInfo['debt'] += sell[0]
         currentInfo['lastSellId'] = current[0][2]
     else:
         currentInfo['lastSellId'] = prevLastid
     
-    
-    query = f"SELECT monto FROM historial_pagos {prevClausule}"
+    dateClasule = prevDate[0:4]+prevDate[5:7]+prevDate[8:10]    
+    prevClausule = f" AND CAST( substr(historial_pagos.fecha,1,4)||substr(historial_pagos.fecha,6,2)||substr(historial_pagos.fecha,9,2) AS INT)  >= {dateClasule}"
+    query = f"SELECT historial_pagos.monto FROM historial_pagos JOIN venta ON venta.id == historial_pagos.idventa WHERE venta.pricedOut == 0 {prevClausule}"
     cursor.execute(query)
     current = cursor.fetchall()
     for pago in current:
@@ -415,7 +421,7 @@ def createBasicInfo(cursor: sqlite3.Cursor, startDate, endDate=None):
         'debt':0
     }
     ## check here is how guapo
-    query = f"SELECT venta.factura, cliente.nombre, venta.id, venta.fecha, venta.total, venta.monto_pago FROM venta INNER JOIN cliente on venta.idcliente == cliente.id "
+    query = f"SELECT venta.factura, cliente.nombre, venta.id, venta.fecha, venta.total, venta.monto_pago, venta.pricedOut FROM venta INNER JOIN cliente on venta.idcliente == cliente.id "
     clause = ''
     if endDate is None:
         clause = f"Where CAST( substr(venta.fecha,1,4)||substr(venta.fecha,6,2)||substr(venta.fecha,9,2) AS INT)  >= {startDate}"
@@ -430,8 +436,12 @@ def createBasicInfo(cursor: sqlite3.Cursor, startDate, endDate=None):
     for venta in rows:
         idsVenta.append(f"{venta[2]}")
         info[venta[2]] = {'ventaId':venta[2], 'ventaFactura':venta[0], 'ventaCliente':venta[1],'date':venta[3],'total':venta[4], 'pagado':venta[5]}
-        sumSellType['cash'] += venta[5]
-        sumSellType['debt'] += venta[4]-venta[5]
+        priceOut = venta[6]
+        if priceOut == 0:
+            sumSellType['debt'] += venta[4]
+        else:
+            sumSellType['cash'] += venta[4]
+        
     idsVenta = ",".join(idsVenta)
     query =f"SELECT producto_venta.idventa, producto_venta.precio, producto_venta.cantidad, producto.nom_corto, producto.nombre, producto.umedida FROM producto_venta INNER JOIN producto ON producto.id == producto_venta.idproducto WHERE idventa IN ({idsVenta}) ORDER BY producto_venta.idventa"
     cursor.execute(query)

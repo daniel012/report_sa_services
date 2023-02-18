@@ -139,11 +139,12 @@ def create_app(test_config=None):
     def insert_sell():
         jsonValue = request.get_json()
         payment = jsonValue.get('payment')
+        total:int = jsonValue.get('total')
         if(payment == ''):
             payment = 0
         else:
             payment = round(float(payment), 2)
-        idVenta = creatVenta(jsonValue.get('client'),jsonValue.get('date'),payment,jsonValue.get('total'),jsonValue.get('invoice'), jsonValue.get('delivered'))
+        idVenta = newSell(jsonValue.get('client'),jsonValue.get('date'),payment,total,jsonValue.get('invoice'), jsonValue.get('delivered'), total == payment)
         idPago = -1
         if payment != 0:
             idPago = insertarHistorialPago(idVenta, date.today(), payment ,jsonValue.get('paymentType'))
@@ -206,7 +207,8 @@ def create_app(test_config=None):
         if total < newPayment:
             return 'MONTO_INVALIDO', 409
         paymentDate = date.today()
-        idPayment = insertarHistorialPago(idSell,paymentDate, payment,paymentType, newPayment)
+        idPayment = insertarHistorialPago(idSell,paymentDate, payment,paymentType)
+        updateSelldebt(idSell, newPayment)
         return jsonify({'id':idPayment, 'amount': payment, 'date':str(paymentDate), 'paymentType': str(paymentType)}), 200
 
     @app.route('/productHistory/<idProduct>', methods= ['GET'])
