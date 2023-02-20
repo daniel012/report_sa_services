@@ -391,7 +391,7 @@ def summaryPreCalculated(cursor: sqlite3.Cursor):
         currentInfo['lastSellId'] = prevLastid
     
     dateClasule = prevDate[0:4]+prevDate[5:7]+prevDate[8:10]    
-    prevClausule = f" AND CAST( substr(historial_pagos.fecha,1,4)||substr(historial_pagos.fecha,6,2)||substr(historial_pagos.fecha,9,2) AS INT)  >= {dateClasule}"
+    prevClausule = f" AND CAST( substr(historial_pagos.fecha,1,4)||substr(historial_pagos.fecha,6,2)||substr(historial_pagos.fecha,9,2) AS INT)  > {dateClasule}"
     query = f"SELECT historial_pagos.monto FROM historial_pagos JOIN venta ON venta.id == historial_pagos.idventa WHERE venta.pricedOut == 0 {prevClausule}"
     cursor.execute(query)
     current = cursor.fetchall()

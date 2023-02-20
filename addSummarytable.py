@@ -22,8 +22,8 @@ def createCalculatedTable(newSalary : int):
         # queryAlter = "ALTER TABLE venta DROP COLUMN pricedOut"
         # cur.execute(queryAlter)
 
-        queryAlter = "ALTER TABLE venta ADD COLUMN pricedOut number default 0"
-        cur.execute(queryAlter)
+        # queryAlter = "ALTER TABLE venta ADD COLUMN pricedOut number default 0"
+        # cur.execute(queryAlter)
 
         con.commit()
         con.close()
@@ -39,11 +39,11 @@ def deleteLastPreCal():
        con = sqlite3.connect('C:\\Users\\jdaniel\\Desktop\\calera_project\\report_sa_services\\msa.db')
        cur = con.cursor()
        cur.execute('''DELETE FROM precalculatedInformation WHERE id > "1"''')    
-       # cur.execute('''DELETE FROM venta WHERE id > "483"''')  
+       cur.execute('''DELETE FROM venta WHERE id > "483"''')  
        con.commit()
        con.close()
 
-deleteLastPreCal()
+# deleteLastPreCal()
 # updateExample()
 ## use user balance, we cannot do prev work
-# createCalculatedTable(1000)
+createCalculatedTable(1000)
