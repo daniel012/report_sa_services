@@ -332,7 +332,7 @@ def cierreDeVenta(generatePrevInfo:bool, startDate, endDate=None):
     preCalculated = {}
     
     if generatePrevInfo: 
-        preCalculated = summaryPreCalculated(cursor)
+        preCalculated = summaryPreCalculated(cursor, con)
     
     con.commit()
     con.close()
@@ -341,7 +341,7 @@ def cierreDeVenta(generatePrevInfo:bool, startDate, endDate=None):
        'preCalculated': preCalculated
     }
 
-def summaryPreCalculated(cursor: sqlite3.Cursor):
+def summaryPreCalculated(cursor: sqlite3.Cursor, con: sqlite3.Connection):
     prevLastid:int = 0
     prevDebt:int =0
     prevPaid:int =0
@@ -355,29 +355,24 @@ def summaryPreCalculated(cursor: sqlite3.Cursor):
         'lastSellId': 0
     }
     
-    query:str = "SELECT lastSellId, debt, paid, date, balance FROM precalculatedInformation ORDER BY id DESC limit 1"
+    query:str = "SELECT lastSellId, debt, paid, date, balance, id FROM precalculatedInformation ORDER BY id DESC limit 1"
     cursor.execute(query)
     preCalculated = cursor.fetchall()
+
+    if preCalculated[0][3] == datetime.today().date().strftime('%Y/%m/%d'):
+        deleteQuery = f"DELETE FROM precalculatedInformation WHERE id == '{preCalculated[0][5]}'"
+        cursor.execute(deleteQuery)
+        con.commit()
+        query:str = "SELECT lastSellId, debt, paid, date, balance, id FROM precalculatedInformation ORDER BY id DESC limit 1"
+        cursor.execute(query)
+        preCalculated = cursor.fetchall()
+        
 
     prevLastid = preCalculated[0][0]
     prevDebt = preCalculated[0][1]
     prevPaid = preCalculated[0][2]
     prevDate = preCalculated[0][3]
     prevBalance = preCalculated[0][4]
-
-    if preCalculated[0][3] == datetime.today().date().strftime('%Y/%m/%d'):
-        return {
-            'currentInfo': {
-                'paid':prevPaid,
-                'debt':prevDebt,
-                'balance': prevBalance
-            }, 
-            'prevDebt': prevDebt, 
-            'prevPaid': prevPaid, 
-            'prevDate': prevDate,
-            'prevBalance': prevBalance,
-            'lastSellId': prevLastid
-        }
 
     query = f"SELECT total, monto_pago, id, pricedOut FROM venta WHERE id > {prevLastid} ORDER BY id desc"
     cursor.execute(query)

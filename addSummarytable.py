@@ -15,8 +15,8 @@ def createCalculatedTable(newSalary : int):
         selectQuery = f"SELECT id from venta order by id desc limit 1"
         cur.execute(selectQuery)
         selectQ = cur.fetchall()
-        # yesterday = date.today() - timedelta(days=1)
-        yesterday = date.today() 
+        yesterday = date.today() - timedelta(days=1)
+        # yesterday = date.today() 
         insert = f"INSERT INTO precalculatedInformation (date, lastSellId, balance, paid, debt) values('{yesterday.strftime('%Y/%m/%d')}', {selectQ[0][0]}, {newSalary}, {0}, {0})"
         cur.execute(insert)
 
