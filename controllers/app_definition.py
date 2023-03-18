@@ -144,10 +144,11 @@ def create_app(test_config=None):
             payment = 0
         else:
             payment = round(float(payment), 2)
-        idVenta = newSell(jsonValue.get('client'),jsonValue.get('date'),payment,total,jsonValue.get('invoice'), jsonValue.get('delivered'), total == payment)
+        sellOut:bool = total == payment
+        idVenta = newSell(jsonValue.get('client'),jsonValue.get('date'),payment,total,jsonValue.get('invoice'), jsonValue.get('delivered'), sellOut)
         idPago = -1
         if payment != 0:
-            idPago = insertarHistorialPago(idVenta, date.today(), payment ,jsonValue.get('paymentType'))
+            idPago = insertarHistorialPago(idVenta, date.today(), payment ,sellOut)
         if idVenta != -1:
             for i in jsonValue.get('list'):
                 # registra el precio y la cantidad por producto
@@ -195,7 +196,6 @@ def create_app(test_config=None):
         jsonValue = request.get_json()
         idSell = jsonValue.get('idSell')
         payment = jsonValue.get('payment')
-        paymentType = jsonValue.get('paymentType')
         instruction = f"SELECT id, total , monto_pago FROM venta where id == '{idSell}'"
         rows = executeQuery(instruction)
         if len(rows) == 0: 
@@ -207,9 +207,10 @@ def create_app(test_config=None):
         if total < newPayment:
             return 'MONTO_INVALIDO', 409
         paymentDate = date.today()
-        idPayment = insertarHistorialPago(idSell,paymentDate, payment,paymentType)
+        # new payments are done for a sell in credit so payment type is false
+        idPayment = insertarHistorialPago(idSell,paymentDate, payment,False)
         updateSelldebt(idSell, newPayment)
-        return jsonify({'id':idPayment, 'amount': payment, 'date':str(paymentDate), 'paymentType': str(paymentType)}), 200
+        return jsonify({'id':idPayment, 'amount': payment, 'date':str(paymentDate), 'paymentType': False}), 200
 
     @app.route('/productHistory/<idProduct>', methods= ['GET'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])

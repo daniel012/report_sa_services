@@ -138,7 +138,7 @@ def get_estadisticaCliente(cliente):
     return data
 
 def get_saldoCliente():
-    instruccion = f"SELECT venta.id,cliente.nombre,venta.fecha,venta.monto_pago,venta.total, agente.nombre,(venta.total - venta.monto_pago), producto.nom_corto FROM venta  INNER JOIN cliente ON cliente.id==venta.idcliente JOIN agente on agente.id == cliente.idagente JOIN producto_venta ON producto_venta.idventa == venta.id JOIN producto ON producto.id == producto_venta.idproducto WHERE venta.total!=venta.monto_pago ORDER BY agente.nombre,cliente.nombre, (venta.total - venta.monto_pago) DESC"
+    instruccion = f"SELECT venta.id,cliente.nombre,venta.fecha,venta.monto_pago,venta.total, agente.nombre,(venta.total - venta.monto_pago), producto.nom_corto FROM venta  INNER JOIN cliente ON cliente.id==venta.idcliente JOIN agente on agente.id == cliente.idagente JOIN producto_venta ON producto_venta.idventa == venta.id JOIN producto ON producto.id == producto_venta.idproducto WHERE venta.total!=venta.monto_pago ORDER BY agente.nombre,cliente.nombre, CAST( substr(venta.fecha,1,4)||substr(venta.fecha,6,2)||substr(venta.fecha,9,2) AS INT) , (venta.total - venta.monto_pago) DESC"
     rows = executeQuery(instruccion)
     map = {}
     agentSum = {}
@@ -286,11 +286,11 @@ def VentaEntrega(id):
     con.close()
     return id
 
-def insertarHistorialPago(idventa,paymentDate,  payment, paymentType):
+def insertarHistorialPago(idventa,paymentDate,  payment, sellOut:bool):
     con = sqlite3.connect('msa.db')
     cur = con.cursor()
     # paymentType true cash, by now always is cash
-    instruction = f"INSERT INTO historial_pagos (idventa, monto, fecha, forma_pago) VALUES ('{idventa}', '{payment}', '{paymentDate}', '{True}')"
+    instruction = f"INSERT INTO historial_pagos (idventa, monto, fecha, forma_pago) VALUES ('{idventa}', '{payment}', '{paymentDate}', '{sellOut}')"
     cur.execute(instruction)
     id = cur.lastrowid
     con.commit()
