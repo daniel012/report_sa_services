@@ -79,6 +79,14 @@ def createDB():
     # We can also close the connection if we are done with it.
     con.close()
 
+def get_agents (): 
+    instruccion = f"SELECT id, nombre, correo FROM agente"
+    rows = executeQuery(instruccion)
+    data = []
+    for row in rows:
+        data.append({'id': row[0], 'name': row[1], 'email': row[2], })
+    return data
+
 def get_agente(correo=None):
     instruccion = f"SELECT agente.id,agente.nombre,agente.direccion,agente.telefono,agente.correo,cliente.nombre, cliente.correo, cliente.telefono FROM agente LEFT JOIN cliente ON agente.id==cliente.idagente"
     if correo is not None:

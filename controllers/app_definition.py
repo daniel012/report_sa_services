@@ -29,6 +29,12 @@ def create_app(test_config=None):
     except OSError:
         pass
 
+    @app.route('/agent', methods= ['GET'])
+    @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
+    def get_AllAgents():
+        data = get_agents()
+        return jsonify(data), 200 if len(data) else 204
+
     @app.route('/agent/<correo>', methods= ['GET'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def get_data(correo):
