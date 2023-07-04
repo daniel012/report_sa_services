@@ -86,12 +86,15 @@ def create_app(test_config=None):
         if((len(rows)) != 0):
             return  'clienteExiste' , 409
         else:
-            rowAgente = executeQuery("SELECT id FROM agente where correo == \""+clientJson.get('correoAgente')+"\"")
-            if(len(rowAgente) == 0):
-                return 'agenteNoExiste', 409
+            if(clientJson.get('agentId') is None):
+                rowAgente = executeQuery("SELECT id FROM agente where correo == \""+clientJson.get('correoAgente')+"\"")
+                if(len(rowAgente) == 0):
+                    return 'agenteNoExiste', 409
+                agentId = rowAgente[0][0]
             else:
-                idClient = tablaCliente("INSERTAR",rowAgente[0][0],clientJson.get('nombre'),clientJson.get('rfc'),clientJson.get('telefono'),clientJson.get('correo'))
-                return str(idClient), 201
+               agentId =  clientJson.get('agentId')
+            idClient = tablaCliente("INSERTAR",agentId,clientJson.get('nombre'),clientJson.get('rfc'),clientJson.get('telefono'),clientJson.get('correo'))
+            return str(idClient), 201
 
     @app.route('/client/<id>', methods= ['PUT'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
