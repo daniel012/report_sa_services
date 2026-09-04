@@ -1,5 +1,6 @@
 import sqlite3
 from datetime import date, datetime, timedelta
+import os
 
 def createDB():
     # Stabilished a connection
@@ -78,6 +79,9 @@ def createDB():
     con.commit()
     # We can also close the connection if we are done with it.
     con.close()
+
+
+DB_PATH = os.getenv("DB_PATH", "/app/data/msa.db")
 
 def get_agents (): 
     instruccion = f"SELECT id, nombre, correo FROM agente"
@@ -167,7 +171,7 @@ def get_saldoCliente():
 
 def tablaAgente(sql, nombre, direccion, telefono, correo, id=None):
     # Stabilished a connection
-    con = sqlite3.connect('msa.db')
+    con = sqlite3.connect(DB_PATH)
     # Create a cursor objet
     cur = con.cursor()
 
@@ -186,7 +190,7 @@ def tablaAgente(sql, nombre, direccion, telefono, correo, id=None):
 
 def tablaCliente(sql, idagente, nombre, rfc, telefono, correo, id=None):
     # Stabilished a connection
-    con = sqlite3.connect('msa.db')
+    con = sqlite3.connect(DB_PATH)
     # Create a cursor objet
     cur = con.cursor()
 
@@ -206,7 +210,7 @@ def tablaCliente(sql, idagente, nombre, rfc, telefono, correo, id=None):
 
 def tablaCompras(sql, idproducto, empresa, cantidad, costo):
     # Stabilished a connection
-    con = sqlite3.connect('msa.db')
+    con = sqlite3.connect(DB_PATH)
     # Create a cursor objet
     cur = con.cursor()
 
@@ -231,7 +235,7 @@ def getProduct(code):
 
 def tablaProducto(sql, nombre, descripcion, existencia, existencia_real, code, fecha, precio_sugerido, umedida, id=None, isIngreso= None, difference=None):
     # Stabilished a connection
-    con = sqlite3.connect('msa.db')
+    con = sqlite3.connect(DB_PATH)
     # Create a cursor objet
     cur = con.cursor()
     code = code.rstrip()
@@ -263,7 +267,7 @@ def tablaProducto(sql, nombre, descripcion, existencia, existencia_real, code, f
 
 def actualizar_producto_existencia(id, existencia):
     # Stabilished a connection
-    con = sqlite3.connect('msa.db')
+    con = sqlite3.connect(DB_PATH)
     # Create a cursor objet
     cur = con.cursor()
     instruction = f"UPDATE producto SET existencia = '{existencia}', existencia_real = '{existencia}' WHERE id = '{id}' "
@@ -276,7 +280,7 @@ def actualizar_producto_existencia(id, existencia):
 
 def tablaProductoVenta(sql, idproducto, idventa, cantidad, costo):
     # Stabilished a connection
-    con = sqlite3.connect('msa.db')
+    con = sqlite3.connect(DB_PATH)
     # Create a cursor objet
     cur = con.cursor()
 
@@ -293,7 +297,7 @@ def newSell(idcliente, fecha, monto_pago, total, factura, entregado, pricedOut:b
         facturabd = executeQuery(f"SELECT factura FROM venta WHERE factura = '{factura}'")
         if len(facturabd) != 0:
             return -1
-    con = sqlite3.connect('msa.db')
+    con = sqlite3.connect(DB_PATH)
     cur = con.cursor()
     instruction = f"INSERT INTO venta (idcliente, fecha, monto_pago, total, factura, entregado, pricedOut) VALUES ('{idcliente}', '{fecha}', '{monto_pago}', '{total}', '{factura}', '{bool(entregado)}', {(1 if pricedOut else 0)})"
     cur.execute(instruction)
@@ -303,7 +307,7 @@ def newSell(idcliente, fecha, monto_pago, total, factura, entregado, pricedOut:b
     return id
 
 def VentaEntrega(id):
-    con = sqlite3.connect('msa.db')
+    con = sqlite3.connect(DB_PATH)
     cur = con.cursor()
     instruction = f"UPDATE venta SET entregado = '{True}' where id = '{id}'"
     cur.execute(instruction)
@@ -312,7 +316,7 @@ def VentaEntrega(id):
     return id
 
 def insertarHistorialPago(idventa,paymentDate,  payment, sellOut:bool):
-    con = sqlite3.connect('msa.db')
+    con = sqlite3.connect(DB_PATH)
     cur = con.cursor()
     # paymentType true cash, by now always is cash
     instruction = f"INSERT INTO historial_pagos (idventa, monto, fecha, forma_pago) VALUES ('{idventa}', '{payment}', '{paymentDate}', '{sellOut}')"
@@ -323,7 +327,7 @@ def insertarHistorialPago(idventa,paymentDate,  payment, sellOut:bool):
     return id
 
 def updateSelldebt(idventa, newPayment):
-    con = sqlite3.connect('msa.db')
+    con = sqlite3.connect(DB_PATH)
     cur = con.cursor()
     instruction = f"UPDATE venta SET monto_pago = {newPayment} where id = '{idventa}'"
     cur.execute(instruction)
@@ -332,7 +336,7 @@ def updateSelldebt(idventa, newPayment):
     return id
 
 def insertProductHistory(idproducto, fecha, cantidad,ingreso, idventa):
-    con = sqlite3.connect('msa.db')
+    con = sqlite3.connect(DB_PATH)
     cur = con.cursor()
     instruction = f"INSERT INTO producto_bitacora (idproducto, fecha, cantidad, ingreso, idventa) VALUES ('{idproducto}', '{fecha}', '{cantidad}', '{ingreso}', '{idventa}')"
     cur.execute(instruction)
@@ -342,7 +346,7 @@ def insertProductHistory(idproducto, fecha, cantidad,ingreso, idventa):
     return id
 
 def executeQuery(query):
-    con = sqlite3.connect('msa.db')
+    con = sqlite3.connect(DB_PATH)
     cursor = con.cursor()
     cursor.execute(query)
     rows = cursor.fetchall()
@@ -350,7 +354,7 @@ def executeQuery(query):
     return rows
 
 def cierreDeVenta(generatePrevInfo:bool, startDate, endDate=None):
-    con = sqlite3.connect('msa.db')
+    con = sqlite3.connect(DB_PATH)
     cursor = con.cursor()
     basicInfo = createBasicInfo(cursor, startDate, endDate)
     preCalculated = {}
