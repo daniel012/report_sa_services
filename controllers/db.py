@@ -219,21 +219,36 @@ def tablaCompras(sql, idproducto, empresa, cantidad, costo):
     # We can also close the connection if we are done with it.
     con.close()
 
+def getProduct(code):
+    print("this is code: ", code, flush=True)
+    rows = executeQuery(f"SELECT id, nombre, descripcion, existencia, existencia_real, nom_corto, precio_sugerido, umedida FROM producto where nom_corto == '{code}'")
+    print("this is rows: ", rows)
+    if len(rows) == 0:
+        return None
+    else:
+        id = rows[0][0]
+        infoSell = executeQuery(f"SELECT id FROM producto_venta where idproducto == '{id}'")
+        data = {'id':id,'name':rows[0][1],'description':rows[0][2],'amount':rows[0][3],'real_amount':rows[0][4],'code': rows[0][5], 'productPrice':rows[0][6], 'metric':rows[0][7],'hasSells': True if len(infoSell) else False }
+    return data
+
 def tablaProducto(sql, nombre, descripcion, existencia, existencia_real, code, fecha, precio_sugerido, umedida, id=None, isIngreso= None, difference=None):
     # Stabilished a connection
     con = sqlite3.connect('msa.db')
     # Create a cursor objet
     cur = con.cursor()
-
-    if sql == "INSERTAR":
-
-        instruction = f"INSERT INTO producto (nombre, descripcion, existencia, existencia_real, nom_corto, precio_sugerido, umedida) VALUES ('{nombre}', '{descripcion}', '{existencia}', '{existencia_real}', '{(code.rstrip())}', '{precio_sugerido}', '{umedida}')"
+    code = code.rstrip()
+    checkProduct = getProduct(code)
+    if sql == "INSERTAR" and checkProduct is None:   
+        instruction = f"INSERT INTO producto (nombre, descripcion, existencia, existencia_real, nom_corto, precio_sugerido, umedida) VALUES ('{nombre}', '{descripcion}', '{existencia}', '{existencia_real}', '{(code)}', '{precio_sugerido}', '{umedida}')"
         cur.execute(instruction)
         id = cur.lastrowid
         instruction = f"INSERT INTO producto_bitacora (idproducto, fecha, cantidad, ingreso) VALUES ('{id}', '{fecha}', '{existencia}', '{1}')"
         cur.execute(instruction)
-    elif sql == "ACTUALIZAR":
+    else:
+        if id is None and checkProduct is not None :
+            id = checkProduct['id']
         instruction = f"UPDATE producto SET nombre = '{nombre}' , descripcion = '{descripcion}' , existencia = '{existencia}', existencia_real = '{existencia_real}', nom_corto = '{code}' , precio_sugerido = '{precio_sugerido}' , umedida= '{umedida}' WHERE id = '{id}' "
+        print("update instruction: ", instruction, flush=True)
         cur.execute(instruction)
         if id is not None and isIngreso is not None and difference is not None and fecha is not None:
             instruction = f"INSERT INTO producto_bitacora (idproducto, fecha, cantidad, ingreso) VALUES ('{id}', '{fecha}', '{difference}', '{isIngreso}')"
@@ -325,7 +340,6 @@ def insertProductHistory(idproducto, fecha, cantidad,ingreso, idventa):
     return id
 
 def executeQuery(query):
-    # con = sqlite3.connect('C:\\Users\\uemar\\OneDrive\\Escritorio\\calera\\report_sa_services\\msa.db')
     con = sqlite3.connect('msa.db')
     cursor = con.cursor()
     cursor.execute(query)

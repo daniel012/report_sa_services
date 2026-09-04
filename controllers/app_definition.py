@@ -120,18 +120,13 @@ def create_app(test_config=None):
     @app.route('/product/<code>', methods= ['GET'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def get_data_product(code):
-        rows = executeQuery(f"SELECT id, nombre, descripcion, existencia, existencia_real, nom_corto, precio_sugerido, umedida FROM producto where nom_corto == '{code}'")
-        if len(rows) == 0:
-            return '', 204
-        else:
-            id = rows[0][0]
-            infoSell = executeQuery(f"SELECT id FROM producto_venta where idproducto == '{id}'")
-            data = {'id':id,'name':rows[0][1],'description':rows[0][2],'amount':rows[0][3],'real_amount':rows[0][4],'code': rows[0][5], 'productPrice':rows[0][6], 'metric':rows[0][7],'hasSells': True if len(infoSell) else False }
-        return jsonify(data), 200
+        data = getProduct(code)
+        return ('', 204) if data is None else (jsonify(data), 200)
 
     @app.route('/product', methods= ['POST'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def insert_product():
+        print("this is code:---------------------------------------------------- ", flush=True)
         jsonValue = request.get_json()
         idProduct = tablaProducto('INSERTAR',jsonValue.get('name'),jsonValue.get('description'),jsonValue.get('amount'),jsonValue.get('real_amount'),jsonValue.get('code'),jsonValue.get('fecha'), jsonValue.get('productPrice'), jsonValue.get('metric') )
         return str(idProduct), 201
