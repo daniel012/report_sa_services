@@ -1,8 +1,12 @@
 import sqlite3
 from datetime import date, timedelta
 
+import os
+
+DB_PATH = os.getenv("DB_PATH", "/app/data/msa.db")
+
 def createCalculatedTable(newSalary : int):
-        con = sqlite3.connect('C:\\Users\\jdaniel\\Desktop\\calera_project\\report_sa_services\\msa.db')
+        con = sqlite3.connect(DB_PATH)
         cur = con.cursor()
         cur.execute(''' DROP TABLE precalculatedInformation ''')
         cur.execute('''CREATE TABLE precalculatedInformation (
@@ -30,14 +34,14 @@ def createCalculatedTable(newSalary : int):
         con.close()
 
 def updateExample():
-       con = sqlite3.connect('C:\\Users\\jdaniel\\Desktop\\calera_project\\report_sa_services\\msa.db')
+       con = sqlite3.connect(DB_PATH)
        cur = con.cursor()
        cur.execute('''UPDATE precalculatedInformation SET date="2023/02/04" WHERE id ="1" ''')  
        con.commit()
        con.close()
 
 def deleteLastPreCal():
-       con = sqlite3.connect('C:\\Users\\jdaniel\\Desktop\\calera_project\\report_sa_services\\msa.db')
+       con = sqlite3.connect(DB_PATH)
        cur = con.cursor()
        cur.execute('''DELETE FROM precalculatedInformation WHERE id > "1"''')    
        cur.execute('''DELETE FROM venta WHERE id > "483"''')  

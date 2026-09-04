@@ -2,9 +2,11 @@ import sqlite3
 from datetime import date, datetime, timedelta
 import os
 
+DB_PATH = os.getenv("DB_PATH", "/app/data/msa.db")
+
 def createDB():
     # Stabilished a connection
-    con = sqlite3.connect('C:\\Users\\uemar\\Desktop\\calera\\report_sa_services\\msa.db')
+    con = sqlite3.connect(DB_PATH)
     # Create a cursor objet
     cur = con.cursor()
 
@@ -81,7 +83,7 @@ def createDB():
     con.close()
 
 
-DB_PATH = os.getenv("DB_PATH", "/app/data/msa.db")
+
 
 def get_agents (): 
     instruccion = f"SELECT id, nombre, correo FROM agente"
