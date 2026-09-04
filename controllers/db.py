@@ -245,6 +245,11 @@ def tablaProducto(sql, nombre, descripcion, existencia, existencia_real, code, f
     else:
         if id is None and checkProduct is not None :
             id = checkProduct['id']
+            isIngreso = True
+            now = datetime.now()
+            formatted_date = now.strftime("%Y-%m-%d")
+            fecha=formatted_date
+            difference = 0
         instruction = f"UPDATE producto SET nombre = '{nombre}' , descripcion = '{descripcion}' , existencia = '{existencia}', existencia_real = '{existencia_real}', nom_corto = '{code}' , precio_sugerido = '{precio_sugerido}' , umedida= '{umedida}' WHERE id = '{id}' "
         cur.execute(instruction)
         if id is not None and isIngreso is not None and difference is not None and fecha is not None:
