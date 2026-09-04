@@ -220,9 +220,7 @@ def tablaCompras(sql, idproducto, empresa, cantidad, costo):
     con.close()
 
 def getProduct(code):
-    print("this is code: ", code, flush=True)
     rows = executeQuery(f"SELECT id, nombre, descripcion, existencia, existencia_real, nom_corto, precio_sugerido, umedida FROM producto where nom_corto == '{code}'")
-    print("this is rows: ", rows)
     if len(rows) == 0:
         return None
     else:
@@ -248,7 +246,6 @@ def tablaProducto(sql, nombre, descripcion, existencia, existencia_real, code, f
         if id is None and checkProduct is not None :
             id = checkProduct['id']
         instruction = f"UPDATE producto SET nombre = '{nombre}' , descripcion = '{descripcion}' , existencia = '{existencia}', existencia_real = '{existencia_real}', nom_corto = '{code}' , precio_sugerido = '{precio_sugerido}' , umedida= '{umedida}' WHERE id = '{id}' "
-        print("update instruction: ", instruction, flush=True)
         cur.execute(instruction)
         if id is not None and isIngreso is not None and difference is not None and fecha is not None:
             instruction = f"INSERT INTO producto_bitacora (idproducto, fecha, cantidad, ingreso) VALUES ('{id}', '{fecha}', '{difference}', '{isIngreso}')"

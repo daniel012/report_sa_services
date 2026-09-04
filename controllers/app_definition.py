@@ -59,7 +59,6 @@ def create_app(test_config=None):
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def get_Clients():
         query = "SELECT cliente.id,cliente.idagente,cliente.nombre,cliente.rfc,cliente.telefono,cliente.correo, agente.correo, agente.nombre FROM cliente INNER JOIN agente on cliente.idagente = agente.id";
-        # print(query)
         rows = executeQuery(query)
         data =[]
         for row in rows:
@@ -70,7 +69,6 @@ def create_app(test_config=None):
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def get_dataClient(nombre):
         query = "SELECT cliente.id,cliente.idagente,cliente.nombre,cliente.rfc,cliente.telefono,cliente.correo, agente.correo, agente.nombre FROM cliente INNER JOIN agente on cliente.idagente = agente.id where cliente.nombre == \""+nombre+"\"";
-        # print(query)
         rows = executeQuery(query)
         data =[]
         for row in rows:
@@ -126,7 +124,6 @@ def create_app(test_config=None):
     @app.route('/product', methods= ['POST'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def insert_product():
-        print("this is code:---------------------------------------------------- ", flush=True)
         jsonValue = request.get_json()
         idProduct = tablaProducto('INSERTAR',jsonValue.get('name'),jsonValue.get('description'),jsonValue.get('amount'),jsonValue.get('real_amount'),jsonValue.get('code'),jsonValue.get('fecha'), jsonValue.get('productPrice'), jsonValue.get('metric') )
         return str(idProduct), 201
