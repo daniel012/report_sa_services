@@ -48,6 +48,13 @@ def create_app(test_config=None):
         idAgente = tablaAgente('INSERTAR',jsonValue.get('name'),jsonValue.get('address'),jsonValue.get('phone'),jsonValue.get('email'))
         return str(idAgente), 201
 
+    @app.route('/agent/<id>', methods= ['DELETE'])
+    @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
+    def deleteAgent(id):
+        jsonValue = request.get_json()
+        idAgente = deleteAgente(jsonValue.get('name'),jsonValue.get('address'),jsonValue.get('phone'),jsonValue.get('email'),id)
+        return str(idAgente), 200
+
     @app.route('/agent/<id>', methods= ['PUT'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def updateAgent(id):
@@ -58,7 +65,7 @@ def create_app(test_config=None):
     @app.route('/client', methods= ['GET'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def get_Clients():
-        query = "SELECT cliente.id,cliente.idagente,cliente.nombre,cliente.rfc,cliente.telefono,cliente.correo, agente.correo, agente.nombre FROM cliente INNER JOIN agente on cliente.idagente = agente.id";
+        query = "SELECT cliente.id,cliente.idagente,cliente.nombre,cliente.rfc,cliente.telefono,cliente.correo, agente.correo, agente.nombre FROM cliente INNER JOIN agente on cliente.idagente = agente.id ORDER BY cliente.nombre asc";
         rows = executeQuery(query)
         data =[]
         for row in rows:
@@ -106,6 +113,18 @@ def create_app(test_config=None):
         else:
             return  'NoExisteAgente' , 409
 
+    @app.route('/client/<id>', methods= ['DELETE'])
+    @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
+    def deleteClient(id):
+        jsonValue = request.get_json()
+        rows = executeQuery("SELECT id FROM agente where id == \""+str(jsonValue.get('idagente'))+"\"")
+        
+        if((len(rows)) != 0):
+            idCliente = deleteCliente(jsonValue.get('idagente'),jsonValue.get('nombre'),jsonValue.get('rfc'),jsonValue.get('telefono'),jsonValue.get('correo'),id)
+            return str(idCliente), 200
+        else:
+            return  'NoExisteAgente' , 409
+
     @app.route('/product', methods= ['GET'])
     @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
     def get_all_data_product():
@@ -133,6 +152,13 @@ def create_app(test_config=None):
     def update_product(id):
         jsonValue = request.get_json()
         idProduct = tablaProducto('ACTUALIZAR',jsonValue.get('name'),jsonValue.get('description'),jsonValue.get('amount'),jsonValue.get('real_amount'),jsonValue.get('code'),jsonValue.get('fecha'), jsonValue.get('productPrice'),jsonValue.get('metric'),id,jsonValue.get('isIngreso'),jsonValue.get('difference'))
+        return str(idProduct), 200
+
+    @app.route('/product/<id>', methods= ['DELETE'])
+    @cross_origin(origin='0.0.0.0',headers=['Content- Type','Authorization'])
+    def delete_product(id):
+        jsonValue = request.get_json()
+        idProduct = deleteProducto(jsonValue.get('name'),jsonValue.get('description'),jsonValue.get('amount'),jsonValue.get('real_amount'),jsonValue.get('code'),id)
         return str(idProduct), 200
 
     @app.route('/sell', methods= ['POST'])

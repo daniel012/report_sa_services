@@ -171,6 +171,22 @@ def get_saldoCliente():
         map[row[5]][row[1]]['data'].append({'idVenta':row[0],'cliente':row[1],'fecha': fecha,'montoPagado':row[3], 'totalPagar':row[4], 'agente':row[5], 'deuda':row[6], 'debt': debt, 'product': row[7]})
     return {'data':map, 'agentSum':agentSum, 'total': total}
 
+
+def deleteAgente( nombre, direccion, telefono, correo, id):
+    # Stabilished a connection
+    con = sqlite3.connect(DB_PATH)
+    # Create a cursor objet
+    cur = con.cursor()
+
+    instruction = f"UPDATE agente SET nombre = '_______BORRADO_______{nombre}' , direccion = '_______BORRADO_______{direccion}' , telefono = '{telefono}' , correo = '_______BORRADO_______{correo}' WHERE id = '{id}' "
+
+    cur.execute(instruction)
+    # Save (commit) the changes
+    con.commit()
+    # We can also close the connection if we are done with it.
+    con.close()
+    return id
+
 def tablaAgente(sql, nombre, direccion, telefono, correo, id=None):
     # Stabilished a connection
     con = sqlite3.connect(DB_PATH)
@@ -184,6 +200,22 @@ def tablaAgente(sql, nombre, direccion, telefono, correo, id=None):
         instruction = f"UPDATE agente SET nombre = '{nombre}' , direccion = '{direccion}' , telefono = '{telefono}' WHERE id = '{id}' "
 
     cur.execute(instruction)
+    # Save (commit) the changes
+    con.commit()
+    # We can also close the connection if we are done with it.
+    con.close()
+    return id
+
+def deleteCliente(idagente, nombre, rfc, telefono, correo, id):
+    # Stabilished a connection
+    con = sqlite3.connect(DB_PATH)
+    # Create a cursor objet
+    cur = con.cursor()
+ 
+    instruction = f"UPDATE cliente SET idagente = '{idagente}' , nombre = '_______BORRADO_______{nombre}' , rfc = '{rfc}', telefono = '{telefono}', correo='_______BORRADO_______{correo}' WHERE id = '{id}' "
+
+    cur.execute(instruction)
+    id = cur.lastrowid
     # Save (commit) the changes
     con.commit()
     # We can also close the connection if we are done with it.
@@ -261,6 +293,21 @@ def tablaProducto(sql, nombre, descripcion, existencia, existencia_real, code, f
         if id is not None and isIngreso is not None and difference is not None and fecha is not None:
             instruction = f"INSERT INTO producto_bitacora (idproducto, fecha, cantidad, ingreso) VALUES ('{id}', '{fecha}', '{difference}', '{isIngreso}')"
             cur.execute(instruction)
+    # Save (commit) the changes
+    con.commit()
+    # We can also close the connection if we are done with it.
+    con.close()
+    return id
+
+def deleteProducto( nombre, descripcion, existencia, existencia_real, code, id):
+    # Stabilished a connection
+    con = sqlite3.connect(DB_PATH)
+    # Create a cursor objet
+    cur = con.cursor()
+    code = code.rstrip()
+    checkProduct = getProduct(code)
+    instruction = f"UPDATE producto SET nombre = '_______BORRADO_______{nombre}' , descripcion = '_______BORRADO_______{descripcion}' ,  nom_corto = '_______BORRADO_______{code}'  WHERE id = '{id}' "
+    cur.execute(instruction)
     # Save (commit) the changes
     con.commit()
     # We can also close the connection if we are done with it.
