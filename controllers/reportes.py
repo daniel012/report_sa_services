@@ -1,17 +1,27 @@
-from pkgutil import get_data
-from pydoc import cli
 from openpyxl import load_workbook, Workbook
-from openpyxl.styles import Font,  PatternFill
+from openpyxl.styles import Font, PatternFill
 from openpyxl.styles.colors import Color
-import win32com.client
-#from win32com.client import Dispatch
 from .db import get_agente, get_productos, get_estadisticaCliente, get_saldoCliente, get_compPago, get_compVenta, cierreDeVenta
 import os
-import pythoncom
-import winshell
 from datetime import date, datetime, timedelta
+import subprocess
 
-escritorio = winshell.desktop()
+try:
+    import win32com.client
+    import pythoncom
+    import winshell
+except ImportError:
+    win32com = None
+    pythoncom = None
+    winshell = None
+
+if winshell:
+    escritorio = winshell.desktop()
+else:
+    escritorio = "/app/generated_reports"
+
+REPORTS_DIR = "/app/generated_reports"
+
 hoy = date.today()
 hoyf = hoy.strftime("%d%m%Y")
 ruta = os.getcwd()
@@ -19,12 +29,11 @@ ruta = os.getcwd()
 def catalogoAgentes():
     data = get_agente()
     archivo = "catalogoAgentes"
-    base = ruta+"\\reportes\\base\\o"+archivo+".xlsx"
-    archivor = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf
-    archivoe = archivor+".xlsx"
-    # Crear Excel
+    base = getBase(archivo)
+    archivor, archivoe = getArchivoInfo(archivo) 
     wb = load_workbook(base)
     sheet = wb.active
+    configurePrintSettings(sheet)
     contador = 6
     contagent = 0
     agenteant = ""
@@ -56,12 +65,12 @@ def catalogoAgentes():
 def catalogoProductos():
     data = get_productos()
     archivo = "catalogoProductos"
-    base = ruta+"\\reportes\\base\\o"+archivo+".xlsx"
-    archivor = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf
-    archivoe = archivor+".xlsx"
+    base = getBase(archivo)
+    archivor, archivoe = getArchivoInfo(archivo)
     # Crear Excel
     wb = load_workbook(base)
     sheet = wb.active
+    configurePrintSettings(sheet)
     contador = 5
     for i in range(len(data)):
         clave = data[i].get('nom_corto')
@@ -79,9 +88,8 @@ def catalogoProductos():
 def estadisticasCliente(id):
     data = get_estadisticaCliente(id)
     archivo = "estadisticasCliente"
-    base = ruta+"\\reportes\\base\\o"+archivo+".xlsx"
-    archivor = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf
-    archivoe = archivor+".xlsx"
+    base = getBase(archivo)
+    archivor, archivoe = getArchivoInfo(archivo)
     # Crear Excel
     wb = load_workbook(base)
     sheet = wb.active
@@ -137,9 +145,8 @@ def saldosCliente():
     agentSum = information['agentSum']
     total = information['total']
     archivo = "saldoDeudorCliente"
-    archivor = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf
-    base = ruta+"\\reportes\\base\\o"+archivo+".xlsx"
-    archivoe = archivor+".xlsx"
+    base = getBase(archivo)
+    archivor, archivoe = getArchivoInfo(archivo)
     # Crear Excel
     wb = load_workbook(base)
     sheet = wb.active
@@ -184,7 +191,7 @@ def saldosCliente():
 def comprobantePago(idVenta):
     data = get_compPago(idVenta)
     archivo = "comprobantePago"
-    base = ruta+"\\reportes\\base\\o"+archivo+".xlsx"
+    base = getBase(archivo)
     cliente = data.get('cliente')
     agente = data.get('agente')
     vfecha = data.get('vfecha')
@@ -194,8 +201,7 @@ def comprobantePago(idVenta):
     fecha = datetime.strptime(vfecha, "%Y-%m-%d")
     flimite = fecha + timedelta(days=30)
     # Crear Excel
-    archivor = escritorio+"\\REPORTES\\"+archivo+str(idVenta)+"-"+hoyf
-    archivoe = archivor+".xlsx"
+    archivor, archivoe = getArchivoInfo(archivo+str(idVenta))
     wb = load_workbook(base)
     sheet = wb.active
     sheet['B'+str(6)] = cliente
@@ -219,7 +225,7 @@ def comprobantePago(idVenta):
 def comprobanteVenta(idVenta):
     data = get_compVenta(idVenta)
     archivo = "comprobanteVenta"
-    base = ruta+"\\reportes\\base\\o"+archivo+".xlsx"
+    base = getBase(archivo)
     cliente = data.get('cliente')
     agente = data.get('agente')
     vfecha = data.get('vfecha')
@@ -227,8 +233,7 @@ def comprobanteVenta(idVenta):
     productos = data.get('productos')
     fecha = datetime.strptime(vfecha, "%Y-%m-%d")
     # Crear Excel
-    archivor = escritorio+"\\REPORTES\\"+archivo+str(idVenta)+"-"+hoyf
-    archivoe = archivor+".xlsx"
+    archivor, archivoe = getArchivoInfo(archivo+str(idVenta))
     wb = load_workbook(base)
     sheet = wb.active
     sheet['B'+str(6)] = cliente
@@ -260,9 +265,8 @@ def reporteCierreVenta(startDate:str, endDate=None):
         generatePrevInfo = True
     
     archivo = "cierreVenta"
-    archivor = escritorio+"\\REPORTES\\"+archivo+"-"+hoyf
-    base = ruta+"\\reportes\\base\\o"+archivo+".xlsx"
-    archivoe = archivor+".xlsx"
+    base = getBase(archivo)
+    archivor, archivoe = getArchivoInfo(archivo)
     wb = load_workbook(base)
     sheet = wb.active  
 
@@ -370,12 +374,28 @@ def generateClosingSales(sheet, basicInfo, startDate, endDate):
 # Crear PDF
 def crearPdf(archivor, archivo):
     try:
-        pythoncom.CoInitialize()
-        excel_file = win32com.client.Dispatch("Excel.Application")
-        xl_sheets = excel_file.Workbooks.Open(archivor+".xlsx")
-        worksheets = xl_sheets.Worksheets[0]
-        worksheets.ExportAsFixedFormat(0, archivor+".pdf")
-        excel_file.quit()
+        subprocess.run([
+            "libreoffice",
+            "--headless",
+            "--convert-to", "pdf",
+            "--outdir", REPORTS_DIR,
+            archivor + ".xlsx"
+        ], check=True)
+
+        print(f"PDF generated successfully: {archivor}.pdf")
+
     except Exception as inst:
-        print("OS error: {0}".format(inst))
-    return
+        print(f"PDF generation failed: {inst}")
+
+def getBase(archivo):
+    return os.path.join(ruta, "reportes", "base", "o" + archivo + ".xlsx")
+
+def getArchivoInfo(archivo):
+    archivor = os.path.join(REPORTS_DIR, archivo + "-" + hoyf)
+    archivoe = archivor + ".xlsx"
+    return archivor, archivoe
+
+def configurePrintSettings(sheet):
+    sheet.page_setup.fitToWidth = 1
+    sheet.page_setup.fitToHeight = 0
+    sheet.sheet_properties.pageSetUpPr.fitToPage = True
